@@ -1,30 +1,28 @@
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 
-import { OrderStatus } from "../../../../core/orders/entities/OrderStatus";
 import { OrderPaymentsStatus } from "../../../../core/orders/entities/OrderPaymentsStatus";
+import { OrderStatus } from "../../../../core/orders/entities/OrderStatus";
 
 import ResourceNotFoundError from "../../../../core/common/exceptions/ResourceNotFoundError";
 
-import ProductDTO from "../../../../core/products/dto/ProductDTO";
-import ItemDTO from "../../../../core/orders/dto/ItemDTO";
 import CustomerDTO from "../../../../core/customers/dto/CustomerDTO";
+import ItemDTO from "../../../../core/orders/dto/ItemDTO";
 import OrderDTO from "../../../../core/orders/dto/OrderDTO";
+import ProductDTO from "../../../../core/products/dto/ProductDTO";
 
-import CustomerGateway from "../../../../core/interfaces/CustomerGateway";
 import OrderGateway from "../../../../core/interfaces/OrderGateway";
-import ProductGateway from "../../../../core/interfaces/ProductGateway";
 import FakeCustomerGateway from "../../../../gateways/FakeCustomerGateway";
 import FakeOrderGateway from "../../../../gateways/FakeOrderGateway";
 import FakeProductGateway from "../../../../gateways/FakeProductGateway";
 import MockPaymentGateway from "../../../../gateways/MockPaymentGateway";
 
-import CreateOrderUseCase from "../../../../core/orders/use-cases/CreateOrderUseCase";
 import AddItemUseCase from "../../../../core/orders/use-cases/AddItemUseCase";
 import CheckoutOrderUseCase from "../../../../core/orders/use-cases/CheckoutOrderUseCase";
-import UpdateOrderStatusUseCase from "../../../../core/orders/use-cases/UpdateOrderStatusUseCase";
+import CreateOrderUseCase from "../../../../core/orders/use-cases/CreateOrderUseCase";
 import GetOrderUseCase from "../../../../core/orders/use-cases/GetOrderUseCase";
 import ProcessOrderPaymentUseCase from "../../../../core/orders/use-cases/ProcessOrderPaymentUseCase";
+import UpdateOrderStatusUseCase from "../../../../core/orders/use-cases/UpdateOrderStatusUseCase";
 
 chai.use(chaiAsPromised);
 
