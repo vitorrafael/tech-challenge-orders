@@ -9,6 +9,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      customerId: {
+        type: Sequelize.INTEGER,
+        allowNull: true
+      },
       status: {
         type: Sequelize.STRING
       },
