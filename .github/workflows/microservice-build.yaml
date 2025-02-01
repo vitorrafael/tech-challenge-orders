@@ -1,0 +1,30 @@
+name: Microservice - Continuous Integration / Build
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # strategy:
+    #   matrix:
+        # node-version: [20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # INSERT STEPS RELATED TO PROJECT BUILD AND TEST
+      
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
