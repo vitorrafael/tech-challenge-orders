@@ -42,7 +42,7 @@ Order.init(
       autoIncrement: true
     },
     customerId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: true
     },
     code: DataTypes.STRING,
