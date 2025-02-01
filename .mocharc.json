@@ -1,6 +1,6 @@
 {
   "diff": true,
-  "require": "ts-node/register",
+  "require": "tsx",
   "extension": ["js", "ts"],
   "package": "./package.json",
   "reporter": "spec",
@@ -8,5 +8,5 @@
   "timeout": 2000,
   "ui": "bdd",
   "recursive": true,
-  "file": ["/src/tests/**/*.test.ts"]
+  "spec": ["src/tests/**/*.test.ts"]
 }
