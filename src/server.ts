@@ -1,9 +1,14 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction, Application } from "express";
 import { swaggerUi, swaggerDocs } from "./infrastructure/config/swagger";
 import ordersAPIRouter from "./api/OrdersAPI";
 import webhooksAPIRouter from "./api/WebhooksAPI";
 
+function disableInformationDisclosure(app: Application) {
+  app.disable("x-powered-by");
+}
+
 const app = express();
+disableInformationDisclosure(app);
 
 app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
