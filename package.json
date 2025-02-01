@@ -4,7 +4,8 @@
   "description": "Orders Microservice for 'Tech Challenge Lanchonete'",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --configs=.mocharc.json"
+    "test": "mocha --configs=.mocharc.json",
+    "coverage": "nyc --reporter=text --reporter=lcov npm run test"
   },
   "repository": {
     "type": "git",
