@@ -1,6 +1,8 @@
 import { Application } from "express";
+import { authenticateDependenciesAvailability } from "./external/authenticators";
 import { sequelize } from "./infrastructure/database/models";
 import app from "./server";
+
 const PORT_SERVER = process.env.PORT_SERVER || 3000;
 
 function configureHealthRoutes(app: Application) {
@@ -11,6 +13,10 @@ function configureHealthRoutes(app: Application) {
   app.get("/health/readiness", async function (_, res) {
     try {
       await sequelize.authenticate();
+
+      if (!(await authenticateDependenciesAvailability()))
+        return res.status(500).json({});
+
       return res.status(200).json({});
     } catch (error) {
       return res.status(500).json({});
@@ -26,16 +32,24 @@ async function init() {
 
   const server = app.listen(PORT_SERVER, () => {
     console.log(`Server running on port ${PORT_SERVER}`);
-    console.log(`Documentação da API disponível em http://localhost:${PORT_SERVER}/api-docs`);
+    console.log(
+      `Documentação da API disponível em http://localhost:${PORT_SERVER}/api-docs`
+    );
   });
 
   process.on("SIGINT", function onSigint() {
-    console.info("SIGINT (ctrl-c in docker). Graceful shutdown", new Date().toISOString());
+    console.info(
+      "SIGINT (ctrl-c in docker). Graceful shutdown",
+      new Date().toISOString()
+    );
     shutdown();
   });
 
   process.on("SIGTERM", function onSigterm() {
-    console.info("SIGTERM (docker container stop). Graceful shutdown", new Date().toISOString());
+    console.info(
+      "SIGTERM (docker container stop). Graceful shutdown",
+      new Date().toISOString()
+    );
     shutdown();
   });
 
