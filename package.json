@@ -1,0 +1,46 @@
+{
+  "name": "tech-challenge-orders",
+  "version": "1.0.0",
+  "description": "Orders Microservice for 'Tech Challenge Lanchonete'",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FIAP-8SOAT-G6/tech-challenge-orders.git"
+  },
+  "keywords": [
+    "tech-challenge-lanchonete",
+    "orders"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FIAP-8SOAT-G6/tech-challenge-orders/issues"
+  },
+  "homepage": "https://github.com/FIAP-8SOAT-G6/tech-challenge-orders#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
+    "sequelize": "^6.37.5",
+    "sequelize-typescript": "^2.1.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@types/chai": "^5.0.1",
+    "@types/chai-as-promised": "^8.0.1",
+    "@types/express": "^5.0.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.13.0",
+    "@types/sequelize": "^4.28.20",
+    "@types/sinon": "^17.0.3",
+    "chai": "^5.1.2",
+    "chai-as-promised": "^8.0.1",
+    "eslint": "^9.19.0",
+    "mocha": "^11.1.0",
+    "sequelize-cli": "^6.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,14 +1,16 @@
-# Tech Challenge Microservice
+# Tech Challenge | Orders Microservice
 
-Template para criação de novos microserviços no projeto **Tech Challenge Lanchonete**.
-Funcionalidades cobertas:
-- Pull Request Template
-- SonarQube
-- Microservice Build
-- Docker Build
+Microsserviço reponsável pelo gerenciamento de pedidos do Tech Challenge Lanchonete.
 
-## Como usar?
+### Tecnologias Utilizadas
 
-1. Crie o repositório do microsserviço a partir deste template
-2. Modifique os valores no `sonar-project.properties` conforme o seu projeto
-3. Ajuste os *steps* dentro dos manifestos de **GitHub Workflows** conforme a tecnologia utilizada
+- DevOps: SonarQube, GitHub Actions, Docker
+- TypeScript & Node.JS
+- PostgreSQL
+
+### Funcionalidades
+
+- Registro de Pedidos
+- Busca de informações para criação de pedido
+- Lista de pedidos registrados
+- Lista de pedidos em processo de produção
