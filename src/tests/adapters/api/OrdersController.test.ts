@@ -12,7 +12,8 @@ import CustomersSystem from "../../../external/CustomersSystem";
 chai.use(chaiAsPromised);
 
 describe("OrdersController", () => {
-  let findByPropertiesCustomerStub: sinon.SinonStub;
+  let findByIDCustomerStub: sinon.SinonStub;
+  let findByCPFCustomerStub: sinon.SinonStub;
   let createStub: sinon.SinonStub;
   let findByIdStub: sinon.SinonStub;
   let findAllStub: sinon.SinonStub;
@@ -23,7 +24,8 @@ describe("OrdersController", () => {
   let removeItemStub: sinon.SinonStub;
 
   beforeEach(() => {
-    findByPropertiesCustomerStub = sinon.stub(CustomersSystem.prototype, "findByProperties");
+    findByIDCustomerStub = sinon.stub(CustomersSystem.prototype, "findByID");
+    findByCPFCustomerStub = sinon.stub(CustomersSystem.prototype, "findByCPF");
 
     createStub = sinon.stub(SequelizeOrderDataSource.prototype, "create");
     findByIdStub = sinon.stub(SequelizeOrderDataSource.prototype, "findById");
@@ -46,7 +48,7 @@ describe("OrdersController", () => {
   describe("when create order", () => {
     it("should create a new order", async () => {
       const customerDTO = new CustomerDTO({ id: 1, name: "Bob", cpf: "12345678909", email: "test@mail.com" });
-      findByPropertiesCustomerStub.resolves([customerDTO]);
+      findByIDCustomerStub.resolves(customerDTO);
 
       const newOrder = { code: "1", customerId: 1, status: "CREATED" };
       const newOrderDTO = new OrderDTO(newOrder);
@@ -59,15 +61,15 @@ describe("OrdersController", () => {
 
       expect(res.status).to.equal(201);
       expect(res.body).to.deep.equal({ ...orderAdapter, createdAt: date.toISOString() });
-      expect(findByPropertiesCustomerStub.calledOnce).to.be.true;
-      expect(findByPropertiesCustomerStub.calledOnceWith({ id: 1 })).to.be.true;
+      expect(findByIDCustomerStub.calledOnce).to.be.true;
+      expect(findByIDCustomerStub.calledOnceWith(1)).to.be.true;
       expect(createStub.calledOnce).to.be.true;
       expect(createStub.calledOnceWith(newOrderDTO));
     });
 
     // POST /orders 500
     it("should return error message when an error occurs to create a new order", async () => {
-      findByPropertiesCustomerStub.rejects();
+      findByIDCustomerStub.rejects();
       const res = await request(app).post("/orders").send({ customerId: 1 });
 
       expect(res.status).to.equal(500);

@@ -1,5 +1,6 @@
+import CustomerDTO from "../core/customers/dto/CustomerDTO";
+
 export interface CustomersSystem {
-  findByProperties(
-    properties: IndexedObject
-  ): Promise<CustomerDTO[] | undefined>;
+  findByCPF(cpf: string): Promise<CustomerDTO | undefined>;
+  findByID(id: number): Promise<CustomerDTO | undefined>;
 }

@@ -6,14 +6,14 @@ export default class CustomerGateway implements CustomerGatewayInterface {
   constructor(private dataSource: CustomersSystem) {}
 
   async findByCPF(cpf: string): Promise<CustomerDTO | undefined> {
-    const customer = await this.dataSource.findByProperties({ cpf });
+    const customer = await this.dataSource.findByCPF(cpf);
     if (!customer) return undefined;
-    return customer[0];
+    return customer;
   }
 
   async findById(id: number): Promise<CustomerDTO | undefined> {
-    const customer = await this.dataSource.findByProperties({ id });
+    const customer = await this.dataSource.findByID(id);
     if (!customer) return undefined;
-    return customer[0];
+    return customer;
   }
 }
