@@ -1,5 +1,5 @@
 import { Application } from "express";
-import { authenticateDependenciesAvailability } from "./external/authenticators";
+import { authenticateDependenciesAvailability } from "./external/Authenticators";
 import { sequelize } from "./infrastructure/database/models";
 import app from "./server";
 
