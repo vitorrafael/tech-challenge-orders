@@ -6,6 +6,8 @@ import app from "./server";
 const PORT_SERVER = process.env.PORT_SERVER || 3000;
 
 function configureHealthRoutes(app: Application) {
+  app.get("/health", async (_, res) => res.status(200).json({}));
+
   app.get("/health/liveness", async function (_, res) {
     return res.status(200).json({});
   });
