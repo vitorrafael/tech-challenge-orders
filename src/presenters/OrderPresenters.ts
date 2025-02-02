@@ -27,7 +27,7 @@ export type QRCodeResponse = {
 export default class OrderPresenter {
   public static adaptOrderCheckoutData(qrCode: string): QRCodeResponse {
     return {
-      qrCode: qrCode
+      qrCode: qrCode,
     };
   }
 
@@ -41,30 +41,20 @@ export default class OrderPresenter {
       status: order.status,
       paymentStatus: order.paymentStatus,
       totalPrice: order.totalPrice,
-      items: order.items?.map((item) => ({
-        id: item.id,
-        orderId: item.orderId,
-        productId: item.productId,
-        productName: item.productName,
-        productDescription: item.productDescription,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice
-      }))
+      items: this.adaptOrderItems(order.items),
     } as OrderResponse;
   }
 
-  public static adaptOrdersData(orders: OrderDTO[] | undefined): OrderResponse[] {
+  public static adaptOrdersData(
+    orders: OrderDTO[] | undefined
+  ): OrderResponse[] {
     if (!orders) return [];
-    return orders.map((order) => ({
-      id: order.id,
-      createdAt: order.createdAt,
-      code: order.code,
-      customerId: order.customerId,
-      status: order.status,
-      paymentStatus: order.paymentStatus,
-      totalPrice: order.totalPrice,
-      items: order.items?.map((item) => ({
+    return orders.map((order) => this.adaptOrderData(order));
+  }
+
+  private static adaptOrderItems(items: OrderDTO["items"]) {
+    return (
+      items?.map((item) => ({
         id: item.id,
         orderId: item.orderId,
         productId: item.productId,
@@ -72,8 +62,8 @@ export default class OrderPresenter {
         productDescription: item.productDescription,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice
-      }))
-    })) as OrderResponse[];
+        totalPrice: item.totalPrice,
+      })) || []
+    );
   }
 }
