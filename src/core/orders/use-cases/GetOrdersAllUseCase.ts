@@ -6,7 +6,7 @@ import OrderMapper from "../mappers/OrderMappers";
 export default class GetOrdersAllUseCase implements GetOrdersAll {
   constructor(private orderGateway: OrderGateway) {}
 
-  async getOrdersAll(): Promise<OrderDTO[] | []> {
+  async getOrdersAll(): Promise<OrderDTO[]> {
     const orderDTOs = await this.orderGateway.getOrdersAll();
     if (!orderDTOs || orderDTOs.length === 0) return [];
 

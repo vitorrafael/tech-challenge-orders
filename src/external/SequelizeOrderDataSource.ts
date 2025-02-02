@@ -30,7 +30,7 @@ export default class OrderModelDataSource implements OrderDataSource {
     return order ? this.createOrderDTO(order) : undefined;
   }
 
-  async findAll(): Promise<OrderDTO[] | []> {
+  async findAll(): Promise<OrderDTO[]> {
     const orders = await OrderModel.findAll({
       include: [
         {
@@ -45,7 +45,7 @@ export default class OrderModelDataSource implements OrderDataSource {
 
   async findOrdersByStatusAndSortByAscDate(
     status: string
-  ): Promise<OrderDTO[] | []> {
+  ): Promise<OrderDTO[]> {
     const orders = await OrderModel.findAll({
       include: [
         {

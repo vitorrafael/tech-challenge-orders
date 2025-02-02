@@ -17,14 +17,14 @@ export default class OrderGateway implements OrderGatewayInterface {
     return order;
   }
 
-  async getOrdersByStatusAndSortByAscDate(status: string): Promise<OrderDTO[] | []> {
+  async getOrdersByStatusAndSortByAscDate(status: string): Promise<OrderDTO[]> {
     const orders = await this.dataSource.findOrdersByStatusAndSortByAscDate(status);
     if (!orders) return [];
 
     return orders;
   }
 
-  async getOrdersAll(): Promise<OrderDTO[] | []> {
+  async getOrdersAll(): Promise<OrderDTO[]> {
     const orders = await this.dataSource.findAll();
     if (!orders) return [];
 

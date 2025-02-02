@@ -7,7 +7,7 @@ import OrderMapper from "../mappers/OrderMappers";
 export default class GetOrdersUseCase implements GetOrders {
   constructor(private orderGateway: OrderGateway) {}
 
-  async getOrders(): Promise<OrderDTO[] | []> {
+  async getOrders(): Promise<OrderDTO[]> {
     const { DONE, PREPARING, RECEIVED } = OrderStatus;
     const repositoryOrderDoneDTOs = await this.orderGateway.getOrdersByStatusAndSortByAscDate(DONE);
     const repositoryOrderPreparingDTOs = await this.orderGateway.getOrdersByStatusAndSortByAscDate(PREPARING);

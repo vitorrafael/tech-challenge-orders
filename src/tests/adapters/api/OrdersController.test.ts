@@ -8,16 +8,22 @@ import OrderDTO from "../../../core/orders/dto/OrderDTO";
 import CustomerDTO from "../../../core/customers/dto/CustomerDTO";
 import OrderPresenter from "../../../presenters/OrderPresenters";
 import CustomersService from "../../../external/CustomersService";
+import ProductDTO from "../../../core/products/dto/ProductDTO";
+import ProductsService from "../../../external/ProductsService";
+import ItemDTO from "../../../core/orders/dto/ItemDTO";
+import EmptyOrderError from "../../../core/orders/exceptions/EmptyOrderError";
+import ResourceNotFoundError from "../../../core/common/exceptions/ResourceNotFoundError";
 
 chai.use(chaiAsPromised);
 
 describe("OrdersController", () => {
   let findByIDCustomerStub: sinon.SinonStub;
   let findByCPFCustomerStub: sinon.SinonStub;
+  let findByIdProductStub: sinon.SinonStub;
   let createStub: sinon.SinonStub;
   let findByIdStub: sinon.SinonStub;
   let findAllStub: sinon.SinonStub;
-  let findOrdersByStatusAndSortByAscDateSub: sinon.SinonStub;
+  let findOrdersByStatusAndSortByAscDateStub: sinon.SinonStub;
   let updateOrderStub: sinon.SinonStub;
   let createItemStub: sinon.SinonStub;
   let updateItemStub: sinon.SinonStub;
@@ -26,11 +32,12 @@ describe("OrdersController", () => {
   beforeEach(() => {
     findByIDCustomerStub = sinon.stub(CustomersService.prototype, "findByID");
     findByCPFCustomerStub = sinon.stub(CustomersService.prototype, "findByCPF");
+    findByIdProductStub = sinon.stub(ProductsService.prototype, "findById");
 
     createStub = sinon.stub(SequelizeOrderDataSource.prototype, "create");
     findByIdStub = sinon.stub(SequelizeOrderDataSource.prototype, "findById");
     findAllStub = sinon.stub(SequelizeOrderDataSource.prototype, "findAll");
-    findOrdersByStatusAndSortByAscDateSub = sinon.stub(SequelizeOrderDataSource.prototype, "findOrdersByStatusAndSortByAscDate");
+    findOrdersByStatusAndSortByAscDateStub = sinon.stub(SequelizeOrderDataSource.prototype, "findOrdersByStatusAndSortByAscDate");
     //findOrdersByStatusAndSortByAscDate.resolves([]); -- recebe uma string.
     updateOrderStub = sinon.stub(SequelizeOrderDataSource.prototype, "updateOrder");
     //updateOrderStub.resolves(orderDTO) --recebe um orderDTO - usa o findById para retorno
@@ -41,35 +48,77 @@ describe("OrdersController", () => {
     removeItemStub = sinon.stub(SequelizeOrderDataSource.prototype, "removeItem");
   });
 
+  function resolvesFindCustomer() {
+    const customerDTO = new CustomerDTO({ id: 1, name: "Bob", cpf: "12345678909", email: "test@mail.com" });
+    findByIDCustomerStub.resolves(customerDTO);
+    return customerDTO;
+  }
+
+  function createOrderDTO(customProps: {} = {}) {
+    const newOrder = { id: 1, code: "1", customerId: 1, status: "CREATED", totalPrice: 0, items: [], ...customProps };
+    return new OrderDTO(newOrder);
+  }
+
+  function adaptOrderToJson(orderCreated: OrderDTO) {
+    const order = OrderPresenter.adaptOrderData(orderCreated);
+    const orderJSon = JSON.stringify({ ...order, createdAt: order.createdAt.toISOString() });
+    return JSON.parse(orderJSon);
+  }
+
+  function resolvesCreateProduct() {
+    const product = { id: 5, name: "Product", description: "Product description", price: 10 };
+    const productDTO = new ProductDTO(product);
+    findByIdProductStub.resolves(productDTO);
+
+    return productDTO;
+  }
+
+  function resolvesFindOrder({ customOrder, customItems }: { customOrder?: Partial<OrderDTO>; customItems?: Partial<ItemDTO> } = {}) {
+    const itemDTO = new ItemDTO({ id: 1, quantity: 2, totalPrice: 10, unitPrice: 5, ...customItems });
+    const orderDTO = createOrderDTO({ id: 1, code: "1", createdAt: new Date(), items: [itemDTO], ...customOrder });
+    findByIdStub.resolves(orderDTO);
+    return orderDTO;
+  }
+
   afterEach(() => {
     sinon.restore();
   });
 
   describe("when create order", () => {
     it("should create a new order", async () => {
-      const customerDTO = new CustomerDTO({ id: 1, name: "Bob", cpf: "12345678909", email: "test@mail.com" });
-      findByIDCustomerStub.resolves(customerDTO);
+      const customerDTO = resolvesFindCustomer();
 
-      const newOrder = { code: "1", customerId: 1, status: "CREATED" };
-      const newOrderDTO = new OrderDTO(newOrder);
-      const date = new Date();
-      const orderCreated = { ...newOrderDTO, id: 1, createdAt: date, totalPrice: 0, paymentStatus: "PENDING", items: [] };
+      const newOrderDTO = createOrderDTO({ items: [], paymentStatus: "PENDING" });
+      const orderCreated = { ...newOrderDTO, id: 1, createdAt: new Date(), totalPrice: 0, items: [] };
       createStub.resolves(orderCreated);
 
-      const orderAdapter = OrderPresenter.adaptOrderData(orderCreated);
+      const orderAdapter = adaptOrderToJson(orderCreated);
       const res = await request(app).post("/orders").send({ customerId: 1 });
 
       expect(res.status).to.equal(201);
-      expect(res.body).to.deep.equal({ ...orderAdapter, createdAt: date.toISOString() });
+      expect(res.body).to.deep.equal(orderAdapter);
       expect(findByIDCustomerStub.calledOnce).to.be.true;
-      expect(findByIDCustomerStub.calledOnceWith(1)).to.be.true;
+      expect(findByIDCustomerStub.calledOnceWith(customerDTO.id)).to.be.true;
       expect(createStub.calledOnce).to.be.true;
-      expect(createStub.calledOnceWith(newOrderDTO));
     });
 
-    // POST /orders 500
+    it("should return message error when missing required fields", async () => {
+      findByIDCustomerStub.resolves(undefined);
+
+      const newOrder = { code: "1", customerId: 1, status: "CREATED" };
+      const newOrderDTO = new OrderDTO(newOrder);
+      const orderCreated = { ...newOrderDTO, id: 1, createdAt: new Date(), totalPrice: 0, paymentStatus: "PENDING", items: [] };
+      createStub.resolves(orderCreated);
+
+      const res = await request(app).post("/orders").send({ customerId: 1 });
+
+      expect(res.status).to.equal(400);
+      expect(res.body).to.deep.equal({ error: "Customer not found for id '1'" });
+    });
+
     it("should return error message when an error occurs to create a new order", async () => {
-      findByIDCustomerStub.rejects();
+      resolvesFindCustomer();
+      createStub.rejects();
       const res = await request(app).post("/orders").send({ customerId: 1 });
 
       expect(res.status).to.equal(500);
@@ -78,46 +127,42 @@ describe("OrdersController", () => {
   });
 
   describe("when search orders", () => {
-    //get /orders - 200
-    it("should show list orders", async () => {});
-    //get /orders - 500
-    it("should trazer orders apenas com status de recebido, preparando e done", async () => {});
+    it("should return orders list", async () => {
+      findOrdersByStatusAndSortByAscDateStub.withArgs("DONE").resolves([createOrderDTO({ id: 1, status: "DONE" })]);
+      findOrdersByStatusAndSortByAscDateStub.withArgs("PREPARING").resolves([]);
+      findOrdersByStatusAndSortByAscDateStub.withArgs("RECEIVED").resolves([createOrderDTO({ id: 2, status: "RECEIVED" })]);
+
+      const res = await request(app).get("/orders");
+
+      expect(res.status).to.equal(200);
+      expect(res.body.length).to.equal(2);
+      expect(findOrdersByStatusAndSortByAscDateStub.calledThrice).to.be.true;
+    });
+
+    it("should return error message when an error occurs to search the orders list", async () => {
+      findOrdersByStatusAndSortByAscDateStub.rejects();
+      const res = await request(app).get("/orders");
+
+      expect(res.status).to.equal(500);
+      expect(res.body).to.deep.equal({ error: "Error" });
+    });
   });
 
   describe("when search all orders", () => {
     it("should return search all orders", async () => {
-      const date = new Date();
-      const firstOrderDTO = new OrderDTO({
-        id: 1,
-        code: "1",
-        customerId: 1,
-        status: "CREATED",
-        paymentStatus: "PENDING",
-        totalPrice: 0,
-        items: [],
-        createdAt: date
-      });
-      const secondOrderDTO = new OrderDTO({
-        id: 2,
-        code: "2",
-        customerId: 1,
-        status: "CREATED",
-        paymentStatus: "PENDING",
-        totalPrice: 0,
-        items: [],
-        createdAt: date
-      });
-      findAllStub.resolves([firstOrderDTO, secondOrderDTO]);
+      const firstCreatedOrderDTO = createOrderDTO({ id: 1, code: "1", paymentStatus: "PENDING", createdAt: new Date() });
+      const secondCreatedOrderDTO = createOrderDTO({ id: 2, code: "2", paymentStatus: "PENDING", createdAt: new Date() });
+      findAllStub.resolves([firstCreatedOrderDTO, secondCreatedOrderDTO]);
 
-      const firstOrderAdapter = OrderPresenter.adaptOrderData(firstOrderDTO);
-      const secondOrderAdapter = OrderPresenter.adaptOrderData(secondOrderDTO);
+      const firstOrderAdapter = OrderPresenter.adaptOrderData(firstCreatedOrderDTO);
+      const secondOrderAdapter = OrderPresenter.adaptOrderData(secondCreatedOrderDTO);
       const res = await request(app).get("/orders/all");
 
       expect(res.status).to.equal(200);
       expect(res.body.length).to.equal(2);
       expect(res.body).to.deep.equal([
-        { ...firstOrderAdapter, createdAt: date.toISOString() },
-        { ...secondOrderAdapter, createdAt: date.toISOString() }
+        { ...firstOrderAdapter, createdAt: firstOrderAdapter.createdAt.toISOString() },
+        { ...secondOrderAdapter, createdAt: secondOrderAdapter.createdAt.toISOString() }
       ]);
       expect(findAllStub.calledOnce).to.be.true;
     });
@@ -133,24 +178,14 @@ describe("OrdersController", () => {
 
   describe("when search order by id", () => {
     it("should search order by id", async () => {
-      const date = new Date();
-      const orderDTO = new OrderDTO({
-        id: 1,
-        code: "1",
-        customerId: 1,
-        status: "CREATED",
-        paymentStatus: "PENDING",
-        totalPrice: 0,
-        items: [],
-        createdAt: date
-      });
+      const orderDTO = createOrderDTO({ paymentStatus: "PENDING", createdAt: new Date() });
       findByIdStub.resolves(orderDTO);
 
       const orderAdapter = OrderPresenter.adaptOrderData(orderDTO);
       const res = await request(app).get("/orders/1");
 
       expect(res.status).to.equal(201);
-      expect(res.body).to.deep.equal({ ...orderAdapter, createdAt: date.toISOString() });
+      expect(res.body).to.deep.equal({ ...orderAdapter, createdAt: orderAdapter.createdAt.toISOString() });
       expect(findByIdStub.calledOnce).to.be.true;
       expect(findByIdStub.calledOnceWith(1)).to.be.true;
     });
@@ -172,72 +207,253 @@ describe("OrdersController", () => {
     });
   });
 
-  describe("POST /orders/:orderId/checkout", () => {
-    // POST /orders/:orderId/checkout 200
-    it("should checkout order", async () => {});
+  describe("when search status payment", () => {
+    it("should return payment status", async () => {
+      const orderDTO = createOrderDTO({ paymentStatus: "APPROVED" });
+      findByIdStub.resolves(orderDTO);
+      const res = await request(app).get("/orders/1/payment_status");
 
-    // POST /orders/:orderId/checkout 400
-    it("should return error message when order is empty", async () => {});
+      expect(res.status).to.equal(200);
+      expect(res.body).to.deep.equal("APPROVED");
+      expect(findByIdStub.calledOnce).to.be.true;
+      expect(findByIdStub.calledOnceWith(1)).to.be.true;
+    });
 
-    // POST /orders/:orderId/checkout 500
-    it("should return error message when an error occurs to checkout order", async () => {});
+    it("should return error message when order is not found", async () => {
+      findByIdStub.resolves();
+      const res = await request(app).get("/orders/1/payment_status");
+
+      expect(res.status).to.equal(404);
+      expect(res.body).to.deep.equal({ error: "Order not found for id '1'" });
+    });
+
+    it("should return error message when an error occurs to get payment status", async () => {
+      findByIdStub.rejects();
+
+      const res = await request(app).get("/orders/1/payment_status");
+
+      expect(res.status).to.equal(500);
+      expect(res.body).to.deep.equal({ error: "Error" });
+    });
   });
 
-  describe("GET /orders/:orderId/payment_status", () => {
-    // GET /orders/:orderId/payment_status 200
-    it("should return payment status", async () => {});
+  describe("when update status", () => {
+    it("should update order status", async () => {
+      const itemDTO = new ItemDTO({ id: 1, quantity: 2, totalPrice: 10, unitPrice: 5 });
+      const orderDTO = createOrderDTO({ id: 1, code: "1", createdAt: new Date(), items: [itemDTO] });
+      findByIdStub.resolves(orderDTO);
+      const orderUpdated = { ...orderDTO, status: "PENDING_PAYMENT" };
+      updateOrderStub.resolves(orderUpdated);
 
-    //GET /orders/:orderId/payment_status 404
-    it("should return error message when order is not found", async () => {});
+      const res = await request(app).post("/orders/1/status").send({ status: "PENDING_PAYMENT" });
 
-    // GET /orders/:orderId/payment_status 500
-    it("should return error message when an error occurs to get payment status", async () => {});
-  });
+      const orderAdapter = adaptOrderToJson({ ...orderDTO, status: "PENDING_PAYMENT" });
+      expect(res.status).to.equal(200);
+      expect(res.body).to.deep.equals(orderAdapter);
+      expect(updateOrderStub.calledOnce).to.be.true;
+    });
 
-  describe("POST /orders/:orderId/status", () => {
-    // POST /orders/:orderId/status 200
-    it("should update order status", async () => {});
+    it("should return error message when order is empty", async () => {
+      const orderDTO = createOrderDTO({ paymentStatus: "PENDING" });
+      findByIdStub.resolves(orderDTO);
+      updateOrderStub.resolves({ ...orderDTO, status: "PENDING_PAYMENT" });
 
-    // POST /orders/:orderId/status 400
-    it("should return error message when order is empty", async () => {});
+      const res = await request(app).post("/orders/1/status").send({ status: "PENDING_PAYMENT" });
 
-    // POST /orders/:orderId/status 500
-    it("should return error message when an error occurs to update order status", async () => {});
+      expect(res.status).to.equal(400);
+      expect(res.body).to.deep.equal({ error: new EmptyOrderError().message });
+    });
+
+    it("should return error message when an error occurs to update order status", async () => {
+      const orderDTO = createOrderDTO({ paymentStatus: "PENDING", items: [{ id: 1, quantity: 2 }] });
+      findByIdStub.resolves(orderDTO);
+      updateOrderStub.rejects();
+
+      const res = await request(app).post("/orders/1/status").send({ status: "PENDING_PAYMENT" });
+
+      expect(res.status).to.equal(500);
+      expect(res.body).to.deep.equal({ error: "Error" });
+    });
   });
 
   describe("POST /orders/:orderId/items", () => {
-    // POST /orders/:orderId/items 201
-    it("should add an item", async () => {});
+    it("should add an item", async () => {
+      const productCreated = resolvesCreateProduct();
 
-    // POST /orders/:orderId/items 400
-    it("should return error message when order is empty", async () => {});
+      const orderId = 1;
+      const orderDTO = new OrderDTO({
+        id: orderId,
+        code: "1",
+        customerId: 1,
+        status: "CREATED",
+        paymentStatus: "PENDING",
+        totalPrice: 0,
+        items: [],
+        createdAt: new Date()
+      });
+      findByIdStub.resolves(orderDTO);
 
-    // POST /orders/:orderId/items 404
-    it("should return error message when order is not found", async () => {});
+      const item = { productId: productCreated.id, quantity: 2 };
 
-    // POST /orders/:orderId/items 500
-    it("should return error message when an error occurs to add an item", async () => {});
+      createItemStub.resolves();
+      const orderWithItem = {
+        ...orderDTO,
+        totalPrice: 20,
+        items: [
+          {
+            ...item,
+            orderId: 1,
+            id: 1,
+            productName: productCreated.name,
+            productDescription: productCreated.description,
+            totalPrice: 20,
+            unitPrice: 10
+          }
+        ]
+      };
+      findByIdStub.resolves(orderWithItem);
+
+      const res = await request(app).post("/orders/1/items").send(item);
+
+      const orderAdapt = adaptOrderToJson(orderWithItem);
+      expect(res.status).to.equal(201);
+      expect(res.body).to.deep.equal(orderAdapt);
+      expect(createItemStub.calledOnce).to.be.true;
+      expect(createItemStub.calledOnceWith(orderId, productCreated.id));
+    });
+
+    it("should return error message when order is closed", async () => {
+      resolvesCreateProduct();
+      resolvesFindOrder({ customOrder: { status: "FINISHED", paymentStatus: "APPROVED" } });
+
+      const res = await request(app).post("/orders/1/items").send({ productId: 1, quantity: 2 });
+
+      expect(res.status).to.equal(400);
+      expect(res.body).to.deep.equal({ error: "Cannot modify order '1' with status 'FINISHED'." });
+    });
+
+    it("should return error message when order is not found", async () => {
+      findByIdStub.resolves(undefined);
+
+      const res = await request(app).post("/orders/1/items").send({ productId: 1, quantity: 2 });
+
+      expect(res.status).to.equal(404);
+      expect(res.body).to.deep.equal({ error: "Order not found for id '1'" });
+    });
+
+    it("should return error message when an error occurs to add an item", async () => {
+      resolvesCreateProduct();
+      resolvesFindOrder();
+
+      createItemStub.rejects();
+
+      const res = await request(app).post("/orders/1/items").send({ productId: 1, quantity: 2 });
+
+      expect(res.status).to.equal(500);
+      expect(res.body).to.deep.equal({ error: "Error" });
+    });
   });
 
   describe("PUT /orders/:orderId/items/:itemId", () => {
-    // PUT /orders/:orderId/items/:itemId 200
-    it("should update an item", async () => {});
+    it("should update an item", async () => {
+      const productCreated = resolvesCreateProduct();
 
-    // PUT /orders/:orderId/items/:itemId 400
-    it("should return error message when item is empty", async () => {});
+      const orderId = 1;
+      const date = new Date();
+      const orderDTO = new OrderDTO({
+        id: orderId,
+        code: "1",
+        customerId: 1,
+        status: "CREATED",
+        paymentStatus: "PENDING",
+        totalPrice: 20,
+        items: [{ id: 1, productId: productCreated.id, quantity: 2, unitPrice: 10, totalPrice: 20 }],
+        createdAt: new Date()
+      });
+      findByIdStub.resolves(orderDTO);
 
-    // PUT /orders/:orderId/items/:itemId 404
-    it("should return error message when item is not found", async () => {});
+      const item = { productId: productCreated.id, quantity: 4, description: "New description" };
 
-    // PUT /orders/:orderId/items/:itemId 500
-    it("should return error message when an error occurs to update an item", async () => {});
+      updateItemStub.resolves();
+      const orderWithItem = {
+        ...orderDTO,
+        totalPrice: 40,
+        items: [
+          {
+            ...item,
+            orderId: 1,
+            id: 1,
+            productName: productCreated.name,
+            productDescription: productCreated.description,
+            totalPrice: 40,
+            unitPrice: 10
+          }
+        ]
+      };
+      findByIdStub.resolves(orderWithItem);
+
+      const orderAdapt = OrderPresenter.adaptOrderData(orderWithItem);
+
+      const res = await request(app).put("/orders/1/items/1").send(item);
+
+      expect(res.status).to.equal(200);
+      expect(res.body).to.deep.equal({ ...orderAdapt, createdAt: date.toISOString() });
+      expect(updateItemStub.calledOnce).to.be.true;
+      expect(
+        updateItemStub.calledOnceWith(
+          orderId,
+          sinon.match({
+            id: 1,
+            orderId,
+            productId: 5,
+            productName: "Product",
+            productDescription: "Product description",
+            quantity: 4,
+            unitPrice: 10,
+            totalPrice: 40
+          })
+        )
+      ).to.be.true;
+    });
+
+    it("should return error message when item is closed", async () => {
+      resolvesFindOrder({ customOrder: { status: "FINISHED", paymentStatus: "APPROVED" } });
+
+      const res = await request(app).put("/orders/1/items/1").send({ productId: 1, quantity: 2 });
+
+      expect(res.status).to.equal(400);
+      expect(res.body).to.deep.equal({ error: "Cannot modify order '1' with status 'FINISHED'." });
+    });
+
+    it("should return error message when product is not found", async () => {
+      findByIdProductStub.resolves(undefined);
+      const order = resolvesFindOrder();
+
+      const res = await request(app).put(`/orders/${order.id}/items/3444`).send({ productId: 1, quantity: 2 });
+
+      expect(res.status).to.equal(404);
+      expect(res.body).to.deep.equal({ error: new ResourceNotFoundError("Item", "id", 3444).message });
+    });
+
+    it("should return error message when an error occurs to update an item", async () => {
+      findByIdProductStub.resolves([{ id: 1, name: "Product", description: "Product description", price: 10 }]);
+      const order = resolvesFindOrder();
+
+      updateItemStub.rejects();
+
+      const res = await request(app).put(`/orders/${order.id}/items/${order.items![0].id}`).send({ productId: 1, quantity: 2 });
+
+      expect(res.status).to.equal(500);
+      expect(res.body).to.deep.equal({ error: "Error" });
+    });
   });
 
   describe("when remove item in order", () => {
     it("should remove an item", async () => {
-      findByIdStub.resolves({ id: 1, items: [{ id: 1, quantity: 2 }] });
+      const order = resolvesFindOrder();
+
       removeItemStub.resolves();
-      const res = await request(app).delete("/orders/1/items/1");
+      const res = await request(app).delete(`/orders/${order.id}/items/${order?.items![0]?.id}`);
 
       expect(res.status).to.equal(204);
       expect(res.body).to.deep.equal({});
@@ -246,7 +462,7 @@ describe("OrdersController", () => {
     });
 
     it("should return error message when order is closed", async () => {
-      findByIdStub.resolves({ id: 1, status: "FINISHED" });
+      resolvesFindOrder({ customOrder: { status: "FINISHED" } });
 
       const res = await request(app).delete("/orders/1/items/1");
 
@@ -264,16 +480,16 @@ describe("OrdersController", () => {
     });
 
     it("should return error message when item is not found", async () => {
-      findByIdStub.resolves({ id: 1 });
+      resolvesFindOrder();
 
-      const res = await request(app).delete("/orders/1/items/1");
+      const res = await request(app).delete("/orders/1/items/2");
 
       expect(res.status).to.equal(404);
-      expect(res.body).to.deep.equal({ error: "Item not found for id '1'" });
+      expect(res.body).to.deep.equal({ error: "Item not found for id '2'" });
     });
 
     it("should return error message when an error occurs to remove an item", async () => {
-      findByIdStub.resolves({ id: 1, items: [{ id: 1, quantity: 2 }] });
+      resolvesFindOrder();
       removeItemStub.rejects();
 
       const res = await request(app).delete("/orders/1/items/1");

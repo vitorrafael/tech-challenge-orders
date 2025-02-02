@@ -4,12 +4,12 @@ import OrderController from "../controllers/OrderController";
 import OrderDTO from "../core/orders/dto/OrderDTO";
 import SequelizeOrderDataSource from "../external/SequelizeOrderDataSource";
 import ResourceNotFoundError from "../core/common/exceptions/ResourceNotFoundError";
-import SequelizeProductDataSource from "../external/ProductsService";
 import ItemDTO from "../core/orders/dto/ItemDTO";
 import ClosedOrderError from "../core/orders/exceptions/ClosedOrderError";
 import EmptyOrderError from "../core/orders/exceptions/EmptyOrderError";
 import { MercadoPagoPaymentSystem } from "../external/MercadoPagoPaymentSystem";
 import CustomersService from "../external/CustomersService";
+import ProductsService from "../external/ProductsService";
 
 const ordersAPIRouter = Router();
 
@@ -62,6 +62,9 @@ ordersAPIRouter.post("/orders/:orderId/checkout", async (req, res) => {
     return res.status(200).json(checkoutResponse);
   } catch (error: any) {
     if (error instanceof EmptyOrderError) return res.status(400).json({ error: error.message });
+    if (error instanceof ResourceNotFoundError) {
+      return res.status(404).json({ error: error.message });
+    }
     return res.status(500).json({ error: error.message });
   }
 });
@@ -72,7 +75,9 @@ ordersAPIRouter.get("/orders/:orderId/payment_status", async (req, res) => {
     const status = await OrderController.getPaymentStatus(new SequelizeOrderDataSource(), orderId);
     return res.status(200).json(status);
   } catch (error: any) {
-    if (error instanceof EmptyOrderError) return res.status(400).json({ error: error.message });
+    if (error instanceof ResourceNotFoundError) {
+      return res.status(404).json({ error: error.message });
+    }
     return res.status(500).json({ error: error.message });
   }
 });
@@ -94,7 +99,7 @@ ordersAPIRouter.post("/orders/:orderId/items", async (req, res) => {
     const orderId = Number(req.params.orderId);
     const { productId, quantity } = req.body;
     const addItemDTO = new ItemDTO({ productId, quantity });
-    const order = await OrderController.addItem(new SequelizeOrderDataSource(), new SequelizeProductDataSource(), orderId, addItemDTO);
+    const order = await OrderController.addItem(new SequelizeOrderDataSource(), new ProductsService(), orderId, addItemDTO);
     return res.status(201).json(order);
   } catch (error: any) {
     if (error instanceof ResourceNotFoundError) return res.status(404).json({ error: error.message });

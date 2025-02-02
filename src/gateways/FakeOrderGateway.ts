@@ -63,7 +63,7 @@ export default class FakeOrderGateway implements OrderGateway {
     return this.#createOrderDTO(order);
   }
 
-  async getOrdersAll(): Promise<OrderDTO[] | []> {
+  async getOrdersAll(): Promise<OrderDTO[]> {
     const orders = this.orders.map((order) => ({
       ...order,
       items: this.items.filter((item) => item.OrderId === order.id),
