@@ -25,7 +25,6 @@ export default class CustomersService implements CustomersSource {
     return Promise.resolve(this.createCustomerDTO(response.data));
   }
 
-  // @TODO: API não implementada, precisa ser alinhada com o microserviço de customers
   async findByID(id: number): Promise<CustomerDTO | undefined> {
     const url = `${CustomersService.buildCustomerServiceURL()}/customers/${id}`;
     const response = await axios.get<CustomerDTO>(url);
