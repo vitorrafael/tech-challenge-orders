@@ -71,9 +71,18 @@ export default class OrderModelDataSource implements OrderDataSource {
 
   async createItem(orderDTO: OrderDTO, itemDTO: ItemDTO) {
     const order = await OrderModel.findByPk(orderDTO.id);
-    const { productId, quantity, unitPrice, totalPrice } = itemDTO;
+    const {
+      productId,
+      productName,
+      productDescription,
+      quantity,
+      unitPrice,
+      totalPrice,
+    } = itemDTO;
     await order!.createItem({
       productId: productId!,
+      productName: productName!,
+      productDescription: productDescription!,
       quantity: quantity!,
       unitPrice: unitPrice!,
       totalPrice: totalPrice!,
@@ -105,12 +114,12 @@ export default class OrderModelDataSource implements OrderDataSource {
           new ItemDTO({
             id: databaseItem.id,
             orderId: databaseItem.OrderId,
-            productId: databaseItem.ProductId,
+            productId: databaseItem.productId,
             quantity: databaseItem.quantity,
             unitPrice: databaseItem.unitPrice,
             totalPrice: databaseItem.totalPrice,
-            productName: databaseItem.Product?.name,
-            productDescription: databaseItem.Product?.description,
+            productName: databaseItem.productName,
+            productDescription: databaseItem.productDescription,
           })
       ),
     });

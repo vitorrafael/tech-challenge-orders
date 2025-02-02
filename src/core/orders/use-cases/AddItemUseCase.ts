@@ -23,6 +23,8 @@ export default class AddItemUseCase implements AddItem {
     const order = OrderMapper.toOrderEntity(orderDTO!);
     const item = order.addItem({
       productId: productDTO.id!,
+      productName: productDTO.name!,
+      productDescription: productDTO.description!,
       quantity: quantity!,
       unitPrice: productDTO.price!
     });

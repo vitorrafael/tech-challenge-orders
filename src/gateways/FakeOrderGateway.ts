@@ -15,7 +15,7 @@ type FakeOrder = {
 type FakeItem = {
   id?: number;
   OrderId?: number;
-  ProductId?: number;
+  productId?: number;
   quantity?: number;
   unitPrice?: number;
   totalPrice?: number;
@@ -36,18 +36,20 @@ export default class FakeOrderGateway implements OrderGateway {
       code,
       items: [],
       createdAt: new Date(),
-      customerId
+      customerId,
     };
     this.orders.push(order);
     return this.#createOrderDTO(order);
   }
 
-  async getOrdersByStatusAndSortByAscDate(orderStatus: string): Promise<OrderDTO[]> {
+  async getOrdersByStatusAndSortByAscDate(
+    orderStatus: string
+  ): Promise<OrderDTO[]> {
     const orders = this.orders
       .filter((order) => order.status === orderStatus)
       .map((order) => ({
         ...order,
-        items: this.items.filter((item) => item.OrderId === order.id)
+        items: this.items.filter((item) => item.OrderId === order.id),
       }))
       .sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime());
 
@@ -64,7 +66,7 @@ export default class FakeOrderGateway implements OrderGateway {
   async getOrdersAll(): Promise<OrderDTO[] | []> {
     const orders = this.orders.map((order) => ({
       ...order,
-      items: this.items.filter((item) => item.OrderId === order.id)
+      items: this.items.filter((item) => item.OrderId === order.id),
     }));
     return orders.length === 0 ? [] : orders.map(this.#createOrderDTO);
   }
@@ -74,22 +76,31 @@ export default class FakeOrderGateway implements OrderGateway {
     const orderIndex = this.orders.findIndex((order) => order.id === id);
     this.orders[orderIndex] = {
       ...this.orders[orderIndex],
-      ...orderDTO
+      ...orderDTO,
     };
     return Promise.resolve(this.#createOrderDTO(this.orders[orderIndex]));
   }
 
   async addItem(orderDTO: OrderDTO, itemDTO: ItemDTO): Promise<OrderDTO> {
     const { id: OrderId } = orderDTO;
-    const { productId: ProductId, quantity, unitPrice, totalPrice } = itemDTO;
+    const {
+      productId,
+      productName,
+      productDescription,
+      quantity,
+      unitPrice,
+      totalPrice,
+    } = itemDTO;
 
     this.items.push({
       id: this.items.length + 1,
       OrderId,
-      ProductId,
+      productId,
+      productName,
+      productDescription,
       quantity,
       unitPrice,
-      totalPrice
+      totalPrice,
     });
 
     const order = this.orders.find((order) => order.id === OrderId);
@@ -101,7 +112,7 @@ export default class FakeOrderGateway implements OrderGateway {
     const itemIndex = this.items.findIndex((item) => item.id === itemId);
     this.items[itemIndex] = {
       ...this.items[itemIndex],
-      ...itemDTO
+      ...itemDTO,
     };
     const orderId = this.items[itemIndex].OrderId;
     const order = this.orders.find((order) => order.id === orderId);
@@ -109,7 +120,9 @@ export default class FakeOrderGateway implements OrderGateway {
   }
 
   async deleteItem(orderId: number, itemId: number) {
-    const itemIndex = this.items.findIndex((item) => item.OrderId === orderId && item.id === itemId);
+    const itemIndex = this.items.findIndex(
+      (item) => item.OrderId === orderId && item.id === itemId
+    );
     this.items.splice(itemIndex, 1);
     return Promise.resolve();
   }
@@ -127,14 +140,14 @@ export default class FakeOrderGateway implements OrderGateway {
           new ItemDTO({
             id: databaseItem.id,
             orderId: databaseItem.OrderId!,
-            productId: databaseItem.ProductId!,
+            productId: databaseItem.productId!,
             productName: databaseItem.productName,
             productDescription: databaseItem.productDescription,
             quantity: databaseItem.quantity!,
             unitPrice: databaseItem.unitPrice!,
-            totalPrice: databaseItem.totalPrice!
+            totalPrice: databaseItem.totalPrice!,
           })
-      )
+      ),
     });
   }
 }

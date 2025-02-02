@@ -13,6 +13,12 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      productName: {
+        type: Sequelize.STRING,
+      },
+      productDescription: {
+        type: Sequelize.STRING,
+      },
       quantity: {
         type: Sequelize.NUMBER,
       },

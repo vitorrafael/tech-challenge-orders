@@ -84,6 +84,8 @@ describe("Add Item", () => {
     const createdItem = orderWithItems.items![0];
     expect(createdItem.id).to.not.be.undefined;
     expect(createdItem.productId).to.be.equals(product.id);
+    expect(createdItem.productName).to.be.equals(product.name);
+    expect(createdItem.productDescription).to.be.equals(product.description);
     expect(createdItem.quantity).to.be.equals(2);
     expect(createdItem.totalPrice).to.be.equals(
       createdItem.quantity! * product.price!
