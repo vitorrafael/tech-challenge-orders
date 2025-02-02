@@ -9,15 +9,8 @@ type FakeProduct = {
   price?: number;
 };
 
-type FakeImage = {
-  id: number;
-  productId: number;
-  url: string;
-};
-
 export default class FakeProductGateway implements ProductGateway {
   private products: FakeProduct[] = [];
-  private images: FakeImage[] = [];
 
   async createProduct(productDTO: ProductDTO): Promise<ProductDTO> {
     const { name, category, description, price } = productDTO;

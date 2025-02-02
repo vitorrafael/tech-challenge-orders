@@ -32,7 +32,6 @@ export default class ProductsService implements ProductsSource {
       category: values.category,
       description: values.description,
       price: values.price,
-      images: values.images,
     });
   }
 }
