@@ -55,5 +55,10 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
+  },
+  "nyc": {
+    "exclude": [
+      "src/external"
+    ]
   }
 }
