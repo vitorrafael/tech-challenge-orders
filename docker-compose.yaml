@@ -1,6 +1,7 @@
 services:
   ## Monolith
   lanchonete-db:
+    env_file: .env
     image: postgres:latest
     container_name: lanchonete_postgres
     restart: always
@@ -18,6 +19,7 @@ services:
       - ${LANCHONETE_PORT_DB}
 
   lanchonete-node:
+    env_file: .env
     image: vitorrafael/lanchonete-api:latest
     container_name: lanchonete-node-monolith
     depends_on:
@@ -39,6 +41,7 @@ services:
       - lanchonete_node_data:/home/node/app
 
   orders-db:
+    env_file: .env
     image: postgres:latest
     container_name: orders-postgres
     restart: always
@@ -56,6 +59,7 @@ services:
       - ${ORDERS_PORT_DB}
 
   orders-api:
+    env_file: .env
     build:
       context: .
       dockerfile: Dockerfile
@@ -70,10 +74,10 @@ services:
       POSTGRES_HOST: ${ORDERS_POSTGRES_HOST}
 
       PRODUCTS_SERVICE_HOST: lanchonete-node
-      PRODUCTS_SERVICE_PORT: CONTAINER_PORT_SERVER
+      PRODUCTS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
 
       CUSTOMERS_SERVICE_HOST: lanchonete-node
-      CUSTOMERS_SERVICE_PORT: CONTAINER_PORT_SERVER
+      CUSTOMERS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
     ports:
       - "${ORDERS_HOST_PORT_SERVER}:${ORDERS_CONTAINER_PORT_SERVER}"
     restart: always
