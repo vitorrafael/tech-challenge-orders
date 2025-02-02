@@ -4,19 +4,19 @@ import OrderController from "../controllers/OrderController";
 import OrderDTO from "../core/orders/dto/OrderDTO";
 import SequelizeOrderDataSource from "../external/SequelizeOrderDataSource";
 import ResourceNotFoundError from "../core/common/exceptions/ResourceNotFoundError";
-import SequelizeProductDataSource from "../external/ProductsSystem";
+import SequelizeProductDataSource from "../external/ProductsService";
 import ItemDTO from "../core/orders/dto/ItemDTO";
 import ClosedOrderError from "../core/orders/exceptions/ClosedOrderError";
 import EmptyOrderError from "../core/orders/exceptions/EmptyOrderError";
 import { MercadoPagoPaymentSystem } from "../external/MercadoPagoPaymentSystem";
-import CustomersSystem from "../external/CustomersSystem";
+import CustomersService from "../external/CustomersService";
 
 const ordersAPIRouter = Router();
 
 ordersAPIRouter.post("/orders", async (req, res) => {
   try {
     const orderDTO = new OrderDTO({ customerId: req.body.customerId });
-    const orderCreated = await OrderController.createOrder(new SequelizeOrderDataSource(), new CustomersSystem(), orderDTO);
+    const orderCreated = await OrderController.createOrder(new SequelizeOrderDataSource(), new CustomersService(), orderDTO);
     return res.status(201).json(orderCreated);
   } catch (error: any) {
     if (error instanceof ResourceNotFoundError) return res.status(400).json({ error: error.message });

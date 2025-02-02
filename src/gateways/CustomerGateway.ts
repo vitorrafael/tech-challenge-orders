@@ -1,9 +1,9 @@
 import CustomerGatewayInterface from "../core/interfaces/CustomerGateway";
 import CustomerDTO from "../core/customers/dto/CustomerDTO";
-import { CustomersSystem } from "../interfaces/CustomersSystem";
+import { CustomersSource } from "../interfaces/CustomersSource";
 
 export default class CustomerGateway implements CustomerGatewayInterface {
-  constructor(private dataSource: CustomersSystem) {}
+  constructor(private dataSource: CustomersSource) {}
 
   async findByCPF(cpf: string): Promise<CustomerDTO | undefined> {
     const customer = await this.dataSource.findByCPF(cpf);

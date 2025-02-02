@@ -1,17 +1,17 @@
 import axios from "axios";
 import ProductDTO from "../core/products/dto/ProductDTO";
-import { ProductSystem } from "../interfaces/ProductSystem";
+import { ProductsSource } from "../interfaces/ProductsSource";
 import { StatusCode } from "./StatusCode";
 
 const { PRODUCTS_SERVICE_HOST, PRODUCTS_SERVICE_PORT } = process.env;
 
-export default class ProductsSystem implements ProductSystem {
+export default class ProductsService implements ProductsSource {
   static buildProductsServiceURL() {
     return `http://${PRODUCTS_SERVICE_HOST}:${PRODUCTS_SERVICE_PORT}`;
   }
 
   async findById(id: number): Promise<ProductDTO | undefined> {
-    const url = `${ProductsSystem.buildProductsServiceURL()}/products/${id}`;
+    const url = `${ProductsService.buildProductsServiceURL()}/products/${id}`;
     const response = await axios.get<ProductDTO>(url);
 
     if (response.status === StatusCode.NOT_FOUND) return undefined;

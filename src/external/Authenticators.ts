@@ -1,6 +1,6 @@
 import axios from "axios";
-import CustomersSystem from "./CustomersSystem";
-import ProductsSystem from "./ProductsSystem";
+import CustomersService from "./CustomersService";
+import ProductsService from "./ProductsService";
 import { StatusCode } from "./StatusCode";
 
 const REGEX = new RegExp(/http:\/\/[a-zA-Z]+:\d+/);
@@ -10,8 +10,8 @@ function authenticateServiceURL(url: string): boolean {
 }
 
 export async function authenticateDependenciesAvailability() {
-  const productsServiceUrl = ProductsSystem.buildProductsServiceURL();
-  const customersServiceUrl = CustomersSystem.buildCustomerServiceURL();
+  const productsServiceUrl = ProductsService.buildProductsServiceURL();
+  const customersServiceUrl = CustomersService.buildCustomerServiceURL();
 
   if (
     !authenticateServiceURL(productsServiceUrl) ||

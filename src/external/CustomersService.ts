@@ -1,17 +1,17 @@
 import axios from "axios";
 import CustomerDTO from "../core/customers/dto/CustomerDTO";
-import { CustomersSystem as ICustomersSystem } from "../interfaces/CustomersSystem";
+import { CustomersSource} from "../interfaces/CustomersSource";
 import { StatusCode } from "./StatusCode";
 
 const { CUSTOMERS_SERVICE_HOST, CUSTOMERS_SERVICE_PORT } = process.env;
 
-export default class CustomersSystem implements ICustomersSystem {
+export default class CustomersService implements CustomersSource {
   static buildCustomerServiceURL() {
     return `http://${CUSTOMERS_SERVICE_HOST}:${CUSTOMERS_SERVICE_PORT}`;
   }
 
   async findByCPF(cpf: string): Promise<CustomerDTO | undefined> {
-    const url = `${CustomersSystem.buildCustomerServiceURL()}/customers/${cpf}`;
+    const url = `${CustomersService.buildCustomerServiceURL()}/customers/${cpf}`;
     const response = await axios.get<CustomerDTO>(url);
 
     if (response.status === StatusCode.NOT_FOUND) return undefined;
@@ -27,7 +27,7 @@ export default class CustomersSystem implements ICustomersSystem {
 
   // @TODO: API não implementada, precisa ser alinhada com o microserviço de customers
   async findByID(id: number): Promise<CustomerDTO | undefined> {
-    const url = `${CustomersSystem.buildCustomerServiceURL()}/customers/${id}`;
+    const url = `${CustomersService.buildCustomerServiceURL()}/customers/${id}`;
     const response = await axios.get<CustomerDTO>(url);
 
     if (response.status === StatusCode.NOT_FOUND) return undefined;

@@ -1,10 +1,10 @@
 import ItemDTO from "../core/orders/dto/ItemDTO";
 import OrderDTO from "../core/orders/dto/OrderDTO";
 import { OrdersFactory } from "../factories/OrdersFactory";
-import { CustomersSystem } from "../interfaces/CustomersSystem";
+import { CustomersSource } from "../interfaces/CustomersSource";
 import { OrderDataSource } from "../interfaces/DataSources";
 import { PaymentSystem } from "../interfaces/PaymentSystem";
-import { ProductSystem } from "../interfaces/ProductSystem";
+import { ProductsSource } from "../interfaces/ProductsSource";
 import OrderPresenter, {
   OrderResponse,
   QRCodeResponse,
@@ -13,7 +13,7 @@ import OrderPresenter, {
 export default class OrderController {
   public static async createOrder(
     orderDataSource: OrderDataSource,
-    customerDataSource: CustomersSystem,
+    customerDataSource: CustomersSource,
     orderDTO: OrderDTO
   ): Promise<OrderResponse> {
     const useCase = OrdersFactory.makeCreateOrder(
@@ -80,7 +80,7 @@ export default class OrderController {
 
   public static async addItem(
     orderDataSource: OrderDataSource,
-    productDataSource: ProductSystem,
+    productDataSource: ProductsSource,
     orderId: number,
     addItemDTO: ItemDTO
   ): Promise<OrderResponse> {

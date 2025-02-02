@@ -26,13 +26,13 @@ import UpdateItemUseCase from "../core/orders/use-cases/UpdateItemUseCase";
 import ProductGateway from "../gateways/ProductGateway";
 import { PaymentSystem } from "../interfaces/PaymentSystem";
 import { PaymentGateway } from "../gateways/PaymentGateway";
-import { CustomersSystem } from "../interfaces/CustomersSystem";
-import { ProductSystem } from "../interfaces/ProductSystem";
+import { CustomersSource } from "../interfaces/CustomersSource";
+import { ProductsSource } from "../interfaces/ProductsSource";
 
 export class OrdersFactory {
   public static makeCreateOrder(
     orderDataSource: OrderDataSource,
-    customerDataSource: CustomersSystem
+    customerDataSource: CustomersSource
   ): CreateOrder {
     return new CreateOrderUseCase(
       new OrderGateway(orderDataSource),
@@ -77,7 +77,7 @@ export class OrdersFactory {
 
   public static makeAddItem(
     orderDataSource: OrderDataSource,
-    productDataSource: ProductSystem
+    productDataSource: ProductsSource
   ): AddItem {
     return new AddItemUseCase(
       new OrderGateway(orderDataSource),

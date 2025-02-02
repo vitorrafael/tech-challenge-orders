@@ -1,9 +1,9 @@
 import ProductGatewayInterface from "../core/interfaces/ProductGateway";
 import ProductDTO from "../core/products/dto/ProductDTO";
-import { ProductSystem } from "../interfaces/ProductSystem";
+import { ProductsSource } from "../interfaces/ProductsSource";
 
 export default class ProductGateway implements ProductGatewayInterface {
-  constructor(private dataSource: ProductSystem) {}
+  constructor(private dataSource: ProductsSource) {}
  
   async getByProductId(id: number): Promise<ProductDTO | undefined> {
     const product = await this.dataSource.findById(id);

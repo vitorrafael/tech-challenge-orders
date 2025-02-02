@@ -7,7 +7,7 @@ import SequelizeOrderDataSource from "../../../external/SequelizeOrderDataSource
 import OrderDTO from "../../../core/orders/dto/OrderDTO";
 import CustomerDTO from "../../../core/customers/dto/CustomerDTO";
 import OrderPresenter from "../../../presenters/OrderPresenters";
-import CustomersSystem from "../../../external/CustomersSystem";
+import CustomersService from "../../../external/CustomersService";
 
 chai.use(chaiAsPromised);
 
@@ -24,8 +24,8 @@ describe("OrdersController", () => {
   let removeItemStub: sinon.SinonStub;
 
   beforeEach(() => {
-    findByIDCustomerStub = sinon.stub(CustomersSystem.prototype, "findByID");
-    findByCPFCustomerStub = sinon.stub(CustomersSystem.prototype, "findByCPF");
+    findByIDCustomerStub = sinon.stub(CustomersService.prototype, "findByID");
+    findByCPFCustomerStub = sinon.stub(CustomersService.prototype, "findByCPF");
 
     createStub = sinon.stub(SequelizeOrderDataSource.prototype, "create");
     findByIdStub = sinon.stub(SequelizeOrderDataSource.prototype, "findById");
