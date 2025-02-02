@@ -1,20 +1,59 @@
 services:
-  lanchonete-orders-db:
+  ## Monolith
+  lanchonete-db:
     image: postgres:latest
-    container_name: lanchonete-orders-postgres
+    container_name: lanchonete_postgres
     restart: always
     ports:
-      - "${HOST_PORT_DB}:${CONTAINER_PORT_DB}"
+      - "${LANCHONETE_PORT_DB}:${LANCHONETE_PORT_DB}"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: ${LANCHONETE_POSTGRES_DB}
     volumes:
-      - db_data:${VOLUME_DB_DATA}
+      - lanchonete_db_data:/var/lib/postgresql/data
     networks:
       - fiap
     expose:
-      - ${CONTAINER_PORT_DB}
+      - ${LANCHONETE_PORT_DB}
+
+  lanchonete-node:
+    image: vitorrafael/lanchonete-api:latest
+    container_name: lanchonete-node-monolith
+    depends_on:
+      - lanchonete-db
+    environment:
+      PORT_SERVER: ${LANCHONETE_CONTAINER_PORT_SERVER}
+      PORT_DB: ${LANCHONETE_PORT_DB}
+      DB_NAME: ${LANCHONETE_POSTGRES_DB}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${LANCHONETE_POSTGRES_HOST}
+    ports:
+      - "${LANCHONETE_HOST_PORT_SERVER}:${LANCHONETE_CONTAINER_PORT_SERVER}"
+    restart: always
+    networks:
+      - fiap
+    expose:
+      - ${LANCHONETE_CONTAINER_PORT_SERVER}
+    volumes:
+      - lanchonete_node_data:/home/node/app
+
+  orders-db:
+    image: postgres:latest
+    container_name: orders-postgres
+    restart: always
+    ports:
+      - "${ORDERS_PORT_DB}:${ORDERS_PORT_DB}"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${ORDERS_DB_NAME}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - fiap
+    expose:
+      - ${ORDERS_PORT_DB}
 
   orders-api:
     build:
@@ -22,28 +61,32 @@ services:
       dockerfile: Dockerfile
     container_name: orders-api
     depends_on:
-      - lanchonete-orders-db
+      - orders-db
     environment:
-      PORT_SERVER: ${PORT_SERVER}
-      PORT_DB: ${PORT_DB}
-      DB_NAME: ${DB_NAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      MERCADO_PAGO_USER_ID: <USER_ID_MERCADO_PAGO_VENDEDOR>
-      MERCADO_PAGO_ACCESS_TOKEN: <ACCESS_TOKEN_MERCADO_PAGO_VENDEDOR>
-      MERCADO_PAGO_POINT_OF_SALE_ID: <PONTO_DE_VENDA_MERCADO_PAGO_VENDEDOR>
-      NOTIFICATION_URL_HOST: <URL_DO_SERVIÇO>
+      PORT_SERVER: ${ORDERS_CONTAINER_PORT_SERVER}
+      PORT_DB: ${ORDERS_PORT_DB}
+      DB_NAME: ${ORDERS_DB_NAME}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${ORDERS_POSTGRES_HOST}
+
+      PRODUCTS_SERVICE_HOST: lanchonete-node
+      PRODUCTS_SERVICE_PORT: CONTAINER_PORT_SERVER
+
+      CUSTOMERS_SERVICE_HOST: lanchonete-node
+      CUSTOMERS_SERVICE_PORT: CONTAINER_PORT_SERVER
     ports:
-      - "${HOST_PORT_SERVER}:${CONTAINER_PORT_SERVER}"
+      - "${ORDERS_HOST_PORT_SERVER}:${ORDERS_CONTAINER_PORT_SERVER}"
     restart: always
     networks:
       - fiap
     expose:
-      - ${CONTAINER_PORT_SERVER}
+      - ${ORDERS_CONTAINER_PORT_SERVER}
     volumes:
-      - node_data:${VOLUME_NODE_API}
+      - node_data:/home/node/app
 
 volumes:
+  lanchonete_db_data:
+  lanchonete_node_data:
   db_data:
   node_data:
 
