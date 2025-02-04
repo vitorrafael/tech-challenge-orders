@@ -190,7 +190,7 @@ describe("WebhooksAPI", () => {
 
   describe("Unknown Error", () => {
     it("should return 500 if an unknown error occurs", async () => {
-      findByIdStub.rejects(new Error("Unknown Error"));
+      getPaymentDetailsStub.rejects(new Error("Unknown Error"));
 
       const res = await request(app)
         .post("/webhooks")

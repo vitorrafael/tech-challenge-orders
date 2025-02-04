@@ -2,7 +2,7 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import request from "supertest";
 import sinon from "sinon";
-import app from "../../../../src/server";
+import app from "../../../server";
 import SequelizeOrderDataSource from "../../../external/SequelizeOrderDataSource";
 import OrderDTO from "../../../core/orders/dto/OrderDTO";
 import CustomerDTO from "../../../core/customers/dto/CustomerDTO";
@@ -16,7 +16,7 @@ import ResourceNotFoundError from "../../../core/common/exceptions/ResourceNotFo
 
 chai.use(chaiAsPromised);
 
-describe("OrdersController", () => {
+describe("OrdersAPI", () => {
   let findByIDCustomerStub: sinon.SinonStub;
   let findByCPFCustomerStub: sinon.SinonStub;
   let findByIdProductStub: sinon.SinonStub;
