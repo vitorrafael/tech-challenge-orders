@@ -1,22 +1,19 @@
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import request from "supertest";
 import sinon from "sinon";
-import OrderDTO from "../../../core/orders/dto/OrderDTO";
-import OrderPresenter from "../../../presenters/OrderPresenters";
+import request from "supertest";
+import ResourceNotFoundError from "../../../core/common/exceptions/ResourceNotFoundError";
 import ItemDTO from "../../../core/orders/dto/ItemDTO";
-import SequelizeOrderDataSource from "../../../external/SequelizeOrderDataSource";
-import { MercadoPagoPaymentSystem } from "../../../external/MercadoPagoPaymentSystem";
-import app from "../../../server";
+import OrderDTO from "../../../core/orders/dto/OrderDTO";
 import { OrderPaymentsStatus } from "../../../core/orders/entities/OrderPaymentsStatus";
 import { OrderStatus } from "../../../core/orders/entities/OrderStatus";
-import ResourceNotFoundError from "../../../core/common/exceptions/ResourceNotFoundError";
+import { MercadoPagoPaymentSystem } from "../../../external/MercadoPagoPaymentSystem";
+import SequelizeOrderDataSource from "../../../external/SequelizeOrderDataSource";
+import app from "../../../server";
 
 chai.use(chaiAsPromised);
 
 describe("WebhooksAPI", () => {
-  let findByIDCustomerStub: sinon.SinonStub;
-  let createStub: sinon.SinonStub;
   let findByIdStub: sinon.SinonStub;
   let updateOrderStub: sinon.SinonStub;
   let getPaymentDetailsStub: sinon.SinonStub;
