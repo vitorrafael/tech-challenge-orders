@@ -80,8 +80,10 @@ export class MercadoPagoPaymentSystem implements PaymentSystem {
     };
   }
 
-  async getPaymentDetails(paymentID: any): Promise<PaymentDetails> {
+  async getPaymentDetails(paymentID: any): Promise<PaymentDetails | undefined> {
     const serviceUrl = `${MERCADO_PAGO_PAYMENT_URL}/${paymentID}`;
+
+    // @TODO: Implementar verificação caso a responsta não seja 200
     const response = await axios.get(serviceUrl, {
       headers: {
         "Content-Type": "application/json",
@@ -89,7 +91,10 @@ export class MercadoPagoPaymentSystem implements PaymentSystem {
       }
     });
 
+    if (response.status !== 200) return undefined;
+
     return {
+      id: response.data.id,
       externalReference: response.data.external_reference,
       paymentStatus: this.convertToInternalPaymentStatus(response.data.status),
       approvalDate: response.data.date_approved

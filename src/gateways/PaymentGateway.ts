@@ -20,7 +20,7 @@ export class PaymentGateway implements PaymentGatewayInterface {
       status: orderDTO!.status!,
       paymentStatus: orderDTO!.paymentStatus!,
       totalPrice: orderDTO!.totalPrice,
-      items: orderDTO!.items
+      items: orderDTO!.items,
     });
 
     const totalAmount = order.getTotalPrice();
@@ -30,20 +30,24 @@ export class PaymentGateway implements PaymentGatewayInterface {
     const qrCode = await this.paymentSystem.sendPaymentRequest({
       externalReference,
       totalAmount,
-      title: orderTitle
+      title: orderTitle,
     });
 
     return qrCode;
   }
 
   async getPaymentDetails(paymentId: number): Promise<PaymentDTO> {
-    const paymentDetails = await this.paymentSystem.getPaymentDetails(paymentId);
+    const paymentDetails = await this.paymentSystem.getPaymentDetails(
+      paymentId
+    );
 
     return new PaymentDTO({
-      orderId: Number(paymentDetails.externalReference),
-      paymentId,
-      paymentStatus: paymentDetails.paymentStatus,
-      timestamp: new Date(paymentDetails.approvalDate)
+      orderId: Number(paymentDetails?.externalReference),
+      paymentId: paymentDetails?.id,
+      paymentStatus: paymentDetails?.paymentStatus,
+      timestamp: paymentDetails?.approvalDate
+        ? new Date(paymentDetails.approvalDate)
+        : undefined,
     });
   }
 }
