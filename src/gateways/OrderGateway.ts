@@ -31,20 +31,8 @@ export default class OrderGateway implements OrderGatewayInterface {
     return orders;
   }
 
-  async getPaymentStatus(orderId: number): Promise<string> {
-    const order = await this.dataSource.findById(orderId);
-    return order.paymentStatus;
-  }
-
   async updateOrder(orderDTO: OrderDTO): Promise<OrderDTO> {
     const updatedOrder = await this.dataSource.updateOrder(orderDTO);
-    return updatedOrder;
-  }
-
-  async updateOrderStatus(orderId: number, status: string): Promise<OrderDTO> {
-    const order = await this.dataSource.findById(orderId);
-    order.status = status;
-    const updatedOrder = await this.dataSource.updateOrder(order);
     return updatedOrder;
   }
 

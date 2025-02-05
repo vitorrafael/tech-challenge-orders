@@ -160,21 +160,21 @@ describe("WebhooksAPI", () => {
     });
 
     it("should throw error if Order does not exist", async () => {
-        findByIdStub.resolves(null);
-  
-        const res = await request(app)
-          .post("/webhooks")
-          .query({ topic: "payment", id: 1 });
-  
-        expect(res.status).to.equal(404);
-        expect(res.body.error).to.equal(
-          new ResourceNotFoundError(
-            ResourceNotFoundError.Resources.Payment,
-            "id",
-            1
-          ).message
-        );
-      });
+      findByIdStub.resolves(null);
+
+      const res = await request(app)
+        .post("/webhooks")
+        .query({ topic: "payment", id: 1 });
+
+      expect(res.status).to.equal(404);
+      expect(res.body.error).to.equal(
+        new ResourceNotFoundError(
+          ResourceNotFoundError.Resources.Payment,
+          "id",
+          1
+        ).message
+      );
+    });
   });
 
   describe("Unsupported topic", () => {
