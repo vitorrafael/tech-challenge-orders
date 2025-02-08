@@ -25,12 +25,9 @@ Given("I am an anonymous user", function () {
   this.customerId = null;
 });
 
-Given("I am an existing customer", async function () {
-  this.customerId = customers[0].id;
-});
-
-Given("I am an unexisting customer", function () {
-  this.customerId = -1;
+Given("I am customer {string}", async function (customerName) {
+  this.customerId =
+    customers.find((customer) => customer.name === customerName)?.id;
 });
 
 When("I create an order", async function () {
