@@ -1,0 +1,99 @@
+services:
+  ## Monolith
+  lanchonete-db:
+    env_file: .env
+    image: postgres:latest
+    container_name: lanchonete_postgres
+    restart: always
+    ports:
+      - "${LANCHONETE_PORT_DB}:${LANCHONETE_PORT_DB}"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${LANCHONETE_POSTGRES_DB}
+    volumes:
+      - lanchonete_db_data:/var/lib/postgresql/data
+    networks:
+      - fiap
+    expose:
+      - ${LANCHONETE_PORT_DB}
+
+  lanchonete-node:
+    env_file: .env
+    image: vitorrafael/lanchonete-api:latest
+    container_name: lanchonete-node-monolith
+    depends_on:
+      - lanchonete-db
+    environment:
+      PORT_SERVER: ${LANCHONETE_CONTAINER_PORT_SERVER}
+      PORT_DB: ${LANCHONETE_PORT_DB}
+      DB_NAME: ${LANCHONETE_POSTGRES_DB}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${LANCHONETE_POSTGRES_HOST}
+    ports:
+      - "${LANCHONETE_HOST_PORT_SERVER}:${LANCHONETE_CONTAINER_PORT_SERVER}"
+    restart: always
+    networks:
+      - fiap
+    expose:
+      - ${LANCHONETE_CONTAINER_PORT_SERVER}
+    volumes:
+      - lanchonete_node_data:/home/node/app
+
+  orders-db:
+    env_file: .env
+    image: postgres:latest
+    container_name: orders-postgres
+    restart: always
+    ports:
+      - "${ORDERS_PORT_DB}:${ORDERS_PORT_DB}"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${ORDERS_DB_NAME}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - fiap
+    expose:
+      - ${ORDERS_PORT_DB}
+
+  orders-api:
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orders-api
+    depends_on:
+      - orders-db
+    environment:
+      PORT_SERVER: ${ORDERS_CONTAINER_PORT_SERVER}
+      PORT_DB: ${ORDERS_PORT_DB}
+      DB_NAME: ${ORDERS_DB_NAME}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${ORDERS_POSTGRES_HOST}
+
+      PRODUCTS_SERVICE_HOST: lanchonete-node
+      PRODUCTS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
+
+      CUSTOMERS_SERVICE_HOST: lanchonete-node
+      CUSTOMERS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
+    ports:
+      - "${ORDERS_HOST_PORT_SERVER}:${ORDERS_CONTAINER_PORT_SERVER}"
+    restart: always
+    networks:
+      - fiap
+    expose:
+      - ${ORDERS_CONTAINER_PORT_SERVER}
+    volumes:
+      - node_data:/home/node/app
+
+volumes:
+  lanchonete_db_data:
+  lanchonete_node_data:
+  db_data:
+  node_data:
+
+networks:
+  fiap:
+    driver: bridge
