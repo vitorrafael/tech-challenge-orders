@@ -58,6 +58,24 @@ services:
     expose:
       - ${ORDERS_PORT_DB}
 
+  customer-db:
+    env_file: .env
+    image: postgres:latest
+    container_name: customer-postgres
+    restart: always
+    ports:
+      - "${CUSTOMER_PORT_DB}:${CUSTOMER_PORT_DB}"
+    environment:
+      POSTGRES_USER: ${CUSTOMER_DATABASE_USER}
+      POSTGRES_PASSWORD: ${CUSTOMER_DATABASE_PASSWORD}
+      POSTGRES_DB: ${CUSTOMER_DATABASE_NAME}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - fiap
+    expose:
+      - ${CUSTOMER_PORT_DB}
+
   orders-api:
     env_file: .env
     build:
@@ -78,8 +96,8 @@ services:
       PRODUCTS_SERVICE_HOST: lanchonete-node
       PRODUCTS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
 
-      CUSTOMERS_SERVICE_HOST: lanchonete-node
-      CUSTOMERS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
+      CUSTOMERS_SERVICE_HOST: customers-api
+      CUSTOMERS_SERVICE_PORT: ${CUSTOMER_CONTAINER_PORT_SERVER}
     ports:
       - "${ORDERS_HOST_PORT_SERVER}:${ORDERS_CONTAINER_PORT_SERVER}"
     restart: always
