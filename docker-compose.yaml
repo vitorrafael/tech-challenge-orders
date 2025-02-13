@@ -58,24 +58,6 @@ services:
     expose:
       - ${ORDERS_PORT_DB}
 
-  customer-db:
-    env_file: .env
-    image: postgres:latest
-    container_name: customer-postgres
-    restart: always
-    ports:
-      - "${CUSTOMER_PORT_DB}:${CUSTOMER_PORT_DB}"
-    environment:
-      POSTGRES_USER: ${CUSTOMER_DATABASE_USER}
-      POSTGRES_PASSWORD: ${CUSTOMER_DATABASE_PASSWORD}
-      POSTGRES_DB: ${CUSTOMER_DATABASE_NAME}
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    networks:
-      - fiap
-    expose:
-      - ${CUSTOMER_PORT_DB}
-
   orders-api:
     env_file: .env
     build:
@@ -108,10 +90,54 @@ services:
     volumes:
       - node_data:/home/node/app
 
+  customer-db:
+    env_file: .env
+    image: postgres:latest
+    container_name: customer-postgres
+    restart: always
+    ports:
+      - "${CUSTOMER_PORT_DB}:${CUSTOMER_PORT_DB}"
+    environment:
+      POSTGRES_USER: ${CUSTOMER_DATABASE_USER}
+      POSTGRES_PASSWORD: ${CUSTOMER_DATABASE_PASSWORD}
+      POSTGRES_DB: ${CUSTOMER_DATABASE_NAME}
+    volumes:
+      - customer_db_data:/var/lib/postgresql/customer_data
+    networks:
+      - fiap
+    expose:
+      - ${CUSTOMER_PORT_DB}
+
+  customers-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: customer-api
+    depends_on:
+      - customer-db
+    environment:
+      PORT_SERVER: ${CUSTOMER_CONTAINER_PORT_SERVER}
+      DATABASE_PORT: ${CUSTOMER_PORT_DB}
+      DATABASE_NAME: ${CUSTOMER_DB_NAME}
+      DATABASE_HOST: ${CUSTOMER_POSTGRES_HOST}
+      DATABASE_USER: ${CUSTOMER_DATABASE_USER}
+      DATABASE_PASSWORD: ${CUSTOMER_DATABASE_PASSWORD}
+      DATABASE_DIALECT: ${DATABASE_DIALECT}
+    ports:
+      - "${CUSTOMER_HOST_PORT_SERVER}:${CUSTOMER_CONTAINER_PORT_SERVER}"
+    restart: always
+    networks:
+      - fiap
+    expose:
+      - ${CUSTOMER_HOST_PORT_SERVER}
+    volumes:
+      - node_data:/home/node/app
+
 volumes:
+  db_data:
+  customer_db_data:
   lanchonete_db_data:
   lanchonete_node_data:
-  db_data:
   node_data:
 
 networks:
