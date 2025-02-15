@@ -64,14 +64,18 @@ jobs:
       - name: Build Image Name
         id: build-image-name
         run: |
-          echo "IMAGE_NAME=${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.TAG }}" >> "$GITHUB_ENV"
+          echo "IMAGE_NAME=${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.TAG }}" >> "$GITHUB_OUTPUT"
 
       - name: Build & Tag Image
+        env:
+          IMAGE_NAME: ${{ steps.build-image-name.outputs.IMAGE_NAME }}
         run: |
           docker build -t $IMAGE_NAME .
 
       - name: Push Image
         if: github.ref == 'refs/heads/main'
+        env:
+          IMAGE_NAME: ${{ steps.build-image-name.outputs.IMAGE_NAME }}
         run: |
           docker push $IMAGE_NAME
 
