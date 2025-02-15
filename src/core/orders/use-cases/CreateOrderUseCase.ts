@@ -9,22 +9,25 @@ import OrderMapper from "../mappers/OrderMappers";
 
 export default class CreateOrderUseCase implements CreateOrder {
   constructor(
-    private orderGateway: OrderGateway,
-    private customerGateWay: CustomerGateway
+    private readonly orderGateway: OrderGateway,
+    private readonly customerGateway: CustomerGateway
   ) {}
 
   async createOrder(orderDTO: OrderDTO): Promise<OrderDTO> {
     const { customerId } = orderDTO;
 
-    if (!this.isCustomerAnonymous(customerId!)) await this.validateCustomerExists(customerId!);
+    if (!this.isCustomerAnonymous(customerId!))
+      await this.validateCustomerExists(customerId!);
 
     const order = new Order({
       code: this.generateCode(),
       customerId: customerId!,
-      status: OrderStatus.CREATED
+      status: OrderStatus.CREATED,
     });
 
-    const createdOrderDTO = await this.orderGateway.createOrder(OrderMapper.toOrderDTO(order));
+    const createdOrderDTO = await this.orderGateway.createOrder(
+      OrderMapper.toOrderDTO(order)
+    );
     const completeOrder = OrderMapper.toOrderEntity(createdOrderDTO!);
     return OrderMapper.toOrderDTO(completeOrder);
   }
@@ -34,8 +37,13 @@ export default class CreateOrderUseCase implements CreateOrder {
   }
 
   private async validateCustomerExists(customerId: number) {
-    const customerDTO = await this.customerGateWay.findById(customerId);
-    if (!customerDTO) throw new ResourceNotFoundError(ResourceNotFoundError.Resources.Customer, "id", customerId);
+    const customerDTO = await this.customerGateway.findById(customerId);
+    if (!customerDTO)
+      throw new ResourceNotFoundError(
+        ResourceNotFoundError.Resources.Customer,
+        "id",
+        customerId
+      );
   }
 
   private generateCode() {

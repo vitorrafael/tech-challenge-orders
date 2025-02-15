@@ -7,8 +7,8 @@ import OrderMapper from "../mappers/OrderMappers";
 
 export default class CheckoutOrderUseCase implements CheckoutOrder {
   constructor(
-    private orderGateway: OrderGateway,
-    private paymentGateway: PaymentGateway
+    private readonly orderGateway: OrderGateway,
+    private readonly paymentGateway: PaymentGateway
   ) {}
 
   async checkout(orderId: number): Promise<string> {
@@ -25,6 +25,11 @@ export default class CheckoutOrderUseCase implements CheckoutOrder {
   }
 
   #validateOrderExists(orderIdFound: number, orderIdReceived: number) {
-    if (!orderIdFound) throw new ResourceNotFoundError(ResourceNotFoundError.Resources.Order, "id", orderIdReceived);
+    if (!orderIdFound)
+      throw new ResourceNotFoundError(
+        ResourceNotFoundError.Resources.Order,
+        "id",
+        orderIdReceived
+      );
   }
 }

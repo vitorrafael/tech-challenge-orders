@@ -5,7 +5,7 @@ import GetOrder from "../interfaces/GetOrder";
 import OrderMapper from "../mappers/OrderMappers";
 
 export default class GetOrderUseCase implements GetOrder {
-  constructor(private orderGateway: OrderGateway) {}
+  constructor(private readonly orderGateway: OrderGateway) {}
 
   async getOrder(orderId: number): Promise<OrderDTO | undefined> {
     const repositoryOrderDTO = await this.orderGateway.getOrder(orderId);
@@ -16,6 +16,11 @@ export default class GetOrderUseCase implements GetOrder {
   }
 
   #validateOrderExists(orderIdFound: number, orderIdReceived: number) {
-    if (!orderIdFound) throw new ResourceNotFoundError(ResourceNotFoundError.Resources.Order, "id", orderIdReceived);
+    if (!orderIdFound)
+      throw new ResourceNotFoundError(
+        ResourceNotFoundError.Resources.Order,
+        "id",
+        orderIdReceived
+      );
   }
 }
