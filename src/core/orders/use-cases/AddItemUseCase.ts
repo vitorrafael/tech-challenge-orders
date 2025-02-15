@@ -8,17 +8,25 @@ import OrderMapper from "../mappers/OrderMappers";
 
 export default class AddItemUseCase implements AddItem {
   constructor(
-    private orderGateway: OrderGateway,
-    private productGateway: ProductGateway
+    private readonly orderGateway: OrderGateway,
+    private readonly productGateway: ProductGateway
   ) {}
 
   async addItem(orderId: number, itemDTO: ItemDTO): Promise<OrderDTO> {
     const { productId, quantity } = itemDTO;
 
-    const [productDTO, orderDTO] = await Promise.all([this.productGateway.getByProductId(productId!), this.orderGateway.getOrder(orderId)]);
+    const [productDTO, orderDTO] = await Promise.all([
+      this.productGateway.getByProductId(productId!),
+      this.orderGateway.getOrder(orderId),
+    ]);
 
     this.#validateOrderExists(orderDTO?.id!, orderId);
-    if (!productDTO) throw new ResourceNotFoundError(ResourceNotFoundError.Resources.Product, "id", productId);
+    if (!productDTO)
+      throw new ResourceNotFoundError(
+        ResourceNotFoundError.Resources.Product,
+        "id",
+        productId
+      );
 
     const order = OrderMapper.toOrderEntity(orderDTO!);
     const item = order.addItem({
@@ -26,10 +34,13 @@ export default class AddItemUseCase implements AddItem {
       productName: productDTO.name!,
       productDescription: productDTO.description!,
       quantity: quantity!,
-      unitPrice: productDTO.price!
+      unitPrice: productDTO.price!,
     });
 
-    await this.orderGateway.addItem(OrderMapper.toOrderDTO(order), OrderMapper.toItemDTO(item));
+    await this.orderGateway.addItem(
+      OrderMapper.toOrderDTO(order),
+      OrderMapper.toItemDTO(item)
+    );
 
     const updatedOrderDTO = await this.orderGateway.getOrder(orderId);
     const updatedOrder = OrderMapper.toOrderEntity(updatedOrderDTO!);
@@ -38,6 +49,11 @@ export default class AddItemUseCase implements AddItem {
   }
 
   #validateOrderExists(orderIdFound: number, orderIdReceived: number) {
-    if (!orderIdFound) throw new ResourceNotFoundError(ResourceNotFoundError.Resources.Order, "id", orderIdReceived);
+    if (!orderIdFound)
+      throw new ResourceNotFoundError(
+        ResourceNotFoundError.Resources.Order,
+        "id",
+        orderIdReceived
+      );
   }
 }

@@ -6,7 +6,7 @@ import { PaymentSystem } from "../interfaces/PaymentSystem";
 
 export class PaymentGateway implements PaymentGatewayInterface {
   constructor(
-    private orderGateway: OrderGatewayInterface,
+    private readonly orderGateway: OrderGatewayInterface,
     private paymentSystem: PaymentSystem
   ) {}
 

@@ -79,12 +79,12 @@ services:
       CACHE_NAME: ${REDIS_DATABASE}
       CACHE_HOST: ${REDIS_HOST}
       CACHE_PORT: ${REDIS_PORT}
-      
+
       PRODUCTS_SERVICE_HOST: lanchonete-node
       PRODUCTS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
 
-      CUSTOMERS_SERVICE_HOST: lanchonete-node
-      CUSTOMERS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
+      CUSTOMERS_SERVICE_HOST: customers-api
+      CUSTOMERS_SERVICE_PORT: ${CUSTOMER_CONTAINER_PORT_SERVER}
     ports:
       - "${ORDERS_HOST_PORT_SERVER}:${ORDERS_CONTAINER_PORT_SERVER}"
     restart: always
@@ -104,10 +104,53 @@ services:
     networks:
       - fiap
 
+  customer-db:
+    env_file: .env
+    image: postgres:latest
+    container_name: customer-postgres
+    restart: always
+    ports:
+      - "${CUSTOMER_PORT_DB}:${CUSTOMER_PORT_DB}"
+    environment:
+      POSTGRES_USER: ${CUSTOMER_DATABASE_USER}
+      POSTGRES_PASSWORD: ${CUSTOMER_DATABASE_PASSWORD}
+      POSTGRES_DB: ${CUSTOMER_DATABASE_NAME}
+    volumes:
+      - customer_db_data:/var/lib/postgresql/customer_data
+    networks:
+      - fiap
+    expose:
+      - ${CUSTOMER_PORT_DB}
+
+  customers-api:
+    env_file: .env
+    image: anadezuo/customer-api:latest
+    container_name: customer-api
+    depends_on:
+      - customer-db
+    environment:
+      PORT_SERVER: ${CUSTOMER_CONTAINER_PORT_SERVER}
+      DATABASE_PORT: ${CUSTOMER_PORT_DB}
+      DATABASE_NAME: ${CUSTOMER_DB_NAME}
+      DATABASE_HOST: ${CUSTOMER_POSTGRES_HOST}
+      DATABASE_USER: ${CUSTOMER_DATABASE_USER}
+      DATABASE_PASSWORD: ${CUSTOMER_DATABASE_PASSWORD}
+      DATABASE_DIALECT: ${DATABASE_DIALECT}
+    ports:
+      - "${CUSTOMER_HOST_PORT_SERVER}:${CUSTOMER_CONTAINER_PORT_SERVER}"
+    restart: always
+    networks:
+      - fiap
+    expose:
+      - ${CUSTOMER_HOST_PORT_SERVER}
+    volumes:
+      - node_data:/home/node/app
+
 volumes:
+  db_data:
+  customer_db_data:
   lanchonete_db_data:
   lanchonete_node_data:
-  db_data:
   node_data:
   redis_data:
 
