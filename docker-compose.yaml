@@ -79,7 +79,7 @@ services:
       CACHE_NAME: ${REDIS_DATABASE}
       CACHE_HOST: ${REDIS_HOST}
       CACHE_PORT: ${REDIS_PORT}
-      
+
       PRODUCTS_SERVICE_HOST: lanchonete-node
       PRODUCTS_SERVICE_PORT: ${LANCHONETE_CONTAINER_PORT_SERVER}
 
@@ -123,9 +123,8 @@ services:
       - ${CUSTOMER_PORT_DB}
 
   customers-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    env_file: .env
+    image: anadezuo/customer-api:latest
     container_name: customer-api
     depends_on:
       - customer-db
