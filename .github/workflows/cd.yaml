@@ -79,21 +79,15 @@ jobs:
         run: |
           docker push $IMAGE_NAME
 
-      - name: Prepare image to next steps
-        id: prepare-image
-        env:
-          IMAGE_NAME: ${{ steps.build-image-name.outputs.IMAGE_NAME }}
-        run: |
-          echo "::add-mask::$IMAGE_NAME"
-          echo "SECRET_IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_OUTPUT"
-
     outputs:
-      IMAGE_NAME: ${{ steps.prepare-image.outputs.SECRET_IMAGE_NAME }}
+      PUSHED_TAG: ${{ needs.tag.outputs.new_tag }}
 
   rollout-update:
     name: "Rollout Update"
     runs-on: ubuntu-latest
     needs: docker-build-and-push
+    env:
+      TAG: ${{ needs.docker-build-and-push.outputs.PUSHED_TAG }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -106,6 +100,11 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION_DEFAULT }}
 
+      - name: Build Image Name
+        id: build-image-name
+        run: |
+          echo "IMAGE_NAME=${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.TAG }}" >> "$GITHUB_OUTPUT"
+
       - name: Connect to AWS EKS Cluster
         if: github.ref == 'refs/heads/main'
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION_DEFAULT }}
@@ -113,5 +112,5 @@ jobs:
       - name: Rollout Update to Kubernetes Deployment
         if: github.ref == 'refs/heads/main'
         env:
-          NEW_IMAGE_NAME: ${{ needs.docker-build-and-push.outputs.IMAGE_NAME }}
+          NEW_IMAGE_NAME: ${{ steps.build-image-name.outputs.IMAGE_NAME }}
         run: kubectl set image deployments/$K8S_DEPLOYMENT_NAME $K8S_DEPLOYMENT_NAME=$NEW_IMAGE_NAME
