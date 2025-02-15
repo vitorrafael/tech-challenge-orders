@@ -64,7 +64,7 @@ jobs:
       - name: Build Image Name
         id: build-image-name
         run: |
-          echo "IMAGE_NAME=${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.TAG }}" >> "$GITHUB_ENV"
+          echo "IMAGE_NAME=${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.TAG }}" >> "$GITHUB_OUTPUT"
 
       - name: Build & Tag Image
         run: |
