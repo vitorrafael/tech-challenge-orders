@@ -14,11 +14,11 @@ permissions:
 
 env:
   AWS_REGION_DEFAULT: us-east-1
-  AWS_ECR_REPOSITORY: tech-challenge-lanchonete/orders-vitorrafael
   EKS_CLUSTER_NAME: tech-challenge-lanchonete
 
 jobs:
   rollout-update:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     name: "Rollout Update"
     runs-on: ubuntu-latest
     steps:
