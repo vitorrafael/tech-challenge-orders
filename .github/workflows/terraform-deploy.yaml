@@ -21,15 +21,12 @@ jobs:
   terraform-ecr:
     name: "Terraform AWS Elastic Container Registry"
     runs-on: ubuntu-latest
-    environment: production
 
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
 
     steps:
-      # Checkout the repository to the GitHub Actions runner
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -46,8 +43,8 @@ jobs:
 
       - name: Terraform Init
         id: init
-        run: terraform -chdir=infra init
+        run: terraform -chdir=infra/aws init
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform -chdir=infra apply -auto-approve -input=false
+        run: terraform -chdir=infra/aws apply -auto-approve -input=false
