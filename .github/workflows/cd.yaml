@@ -104,7 +104,7 @@ jobs:
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION_DEFAULT }}  
 
       - name: Install Helm
-        run: azure/setup-helm@v4.2.0
+        uses: azure/setup-helm@v4.2.0
 
       - name: Get Helm Repository
         run: helm repo add tcl https://fiap-8soat-g6.github.io/k8s-infrastructure
