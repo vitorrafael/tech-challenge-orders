@@ -106,4 +106,4 @@ jobs:
         if: github.ref == 'refs/heads/main'
         env:
           NEW_IMAGE_NAME: ${{ needs.docker-build-and-push.outputs.IMAGE_NAME }}
-        run: kubectl set image deployment/$K8S_DEPLOYMENT_NAME $K8S_DEPLOYMENT_NAME=$NEW_IMAGE_NAME
+        run: kubectl set image deployments/$K8S_DEPLOYMENT_NAME $K8S_DEPLOYMENT_NAME=$NEW_IMAGE_NAME
