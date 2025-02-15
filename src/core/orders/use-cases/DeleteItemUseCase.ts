@@ -4,7 +4,7 @@ import DeleteItem from "../interfaces/DeleteItem";
 import OrderMapper from "../mappers/OrderMappers";
 
 export default class DeleteItemUseCase implements DeleteItem {
-  constructor(private orderGateway: OrderGateway) {}
+  constructor(private readonly orderGateway: OrderGateway) {}
 
   async deleteItem(orderId: number, itemId: number): Promise<undefined> {
     const orderDTO = await this.orderGateway.getOrder(orderId);
@@ -16,6 +16,11 @@ export default class DeleteItemUseCase implements DeleteItem {
   }
 
   #validateOrderExists(orderIdFound: number, orderIdReceived: number) {
-    if (!orderIdFound) throw new ResourceNotFoundError(ResourceNotFoundError.Resources.Order, "id", orderIdReceived);
+    if (!orderIdFound)
+      throw new ResourceNotFoundError(
+        ResourceNotFoundError.Resources.Order,
+        "id",
+        orderIdReceived
+      );
   }
 }

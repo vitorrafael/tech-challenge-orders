@@ -110,6 +110,5 @@ export default class OrderController {
   ): Promise<any> {
     const useCase = OrdersFactory.makeDeleteItem(orderDataSource);
     await useCase.deleteItem(orderId, itemId);
-    return;
   }
 }
