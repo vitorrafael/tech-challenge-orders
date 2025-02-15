@@ -62,12 +62,12 @@ jobs:
 
       - name: Build & Tag Image
         run: |
-          docker build -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:latest .
+          docker build -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$TAG .
 
       - name: Push Image
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:latest
+          docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$TAG
 
   rollout-update:
     name: "Rollout Update"
