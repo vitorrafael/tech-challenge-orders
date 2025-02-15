@@ -17,7 +17,7 @@ env:
   AWS_ECR_REPOSITORY: tech-challenge-lanchonete/orders-vitorrafael
   AWS_ECR_REGISTRY: 045628470274.dkr.ecr.us-east-1.amazonaws.com
   EKS_CLUSTER_NAME: tech-challenge-lanchonete
-  K8S_DEPLOYMENT_NAME: orders
+  HELM_RELEASE_NAME: orders
 
 jobs:
   tag:
@@ -82,12 +82,12 @@ jobs:
     outputs:
       PUSHED_TAG: ${{ needs.tag.outputs.new_tag }}
 
-  rollout-update:
-    name: "Rollout Update"
+  helm:
+    name: Install/Upgrade Helm Chart
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: docker-build-and-push
-    env:
-      TAG: ${{ needs.docker-build-and-push.outputs.PUSHED_TAG }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,17 +100,19 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION_DEFAULT }}
 
-      - name: Build Image Name
-        id: build-image-name
-        run: |
-          echo "IMAGE_NAME=${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.TAG }}" >> "$GITHUB_OUTPUT"
-
       - name: Connect to AWS EKS Cluster
-        if: github.ref == 'refs/heads/main'
-        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION_DEFAULT }}
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION_DEFAULT }}  
 
-      - name: Rollout Update to Kubernetes Deployment
-        if: github.ref == 'refs/heads/main'
+      - name: Install Helm
+        run: azure/setup-helm@v4.2.0
+
+      - name: Get Helm Repository
+        run: helm repo add tcl https://fiap-8soat-g6.github.io/k8s-infrastructure
+
+      - name: Install or Upgrade Helm Chart
         env:
-          NEW_IMAGE_NAME: ${{ steps.build-image-name.outputs.IMAGE_NAME }}
-        run: kubectl set image deployments/$K8S_DEPLOYMENT_NAME $K8S_DEPLOYMENT_NAME=$NEW_IMAGE_NAME
+          TAG: ${{ needs.docker-build-and-push.outputs.PUSHED_TAG }}
+        run: |
+          helm upgrade --install $HELM_RELEASE_NAME tcl/microservice \
+            -f infra/chart-values/aws-values.yaml \
+            --set image.tag=$TAG
