@@ -17,6 +17,7 @@ env:
   AWS_ECR_REPOSITORY: tech-challenge-lanchonete/orders-vitorrafael
   AWS_ECR_REGISTRY: 045628470274.dkr.ecr.us-east-1.amazonaws.com
   EKS_CLUSTER_NAME: tech-challenge-lanchonete
+  K8S_DEPLOYMENT_NAME: orders
 
 jobs:
   tag:
@@ -60,14 +61,22 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Build Image Name
+        id: build-image-name
+        run: |
+          echo "IMAGE_NAME=${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.TAG }}" >> "$GITHUB_ENV"
+
       - name: Build & Tag Image
         run: |
-          docker build -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$TAG .
+          docker build -t $IMAGE_NAME .
 
       - name: Push Image
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY:$TAG
+          docker push $IMAGE_NAME
+
+    outputs:
+      IMAGE_NAME: ${{ steps.build-image-name.outputs.IMAGE_NAME }}
 
   rollout-update:
     name: "Rollout Update"
@@ -89,6 +98,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION_DEFAULT }}
 
-      - name: Rollout Update
+      - name: Rollout Update to Kubernetes Deployment
         if: github.ref == 'refs/heads/main'
-        run: kubectl rollout restart deployment
+        env:
+          NEW_IMAGE_NAME: ${{ needs.docker-build-and-push.outputs.IMAGE_NAME }}
+        run: kubectl set image deployment/$K8S_DEPLOYMENT_NAME $K8S_DEPLOYMENT_NAME=$NEW_IMAGE_NAME
