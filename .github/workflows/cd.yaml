@@ -79,8 +79,16 @@ jobs:
         run: |
           docker push $IMAGE_NAME
 
+      - name: Prepare image to next steps
+        id: prepare-image
+        env:
+          IMAGE_NAME: ${{ steps.build-image-name.outputs.IMAGE_NAME }}
+        run: |
+          echo "::add-mask::$IMAGE_NAME"
+          echo "SECRET_IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_OUTPUT"
+
     outputs:
-      IMAGE_NAME: ${{ steps.build-image-name.outputs.IMAGE_NAME }}
+      IMAGE_NAME: ${{ steps.prepare-image.outputs.SECRET_IMAGE_NAME }}
 
   rollout-update:
     name: "Rollout Update"
