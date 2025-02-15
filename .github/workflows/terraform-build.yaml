@@ -1,4 +1,4 @@
-name: "Terraform - Build"
+name: "CI - Terraform Check & Plan"
 
 on:
   push:
