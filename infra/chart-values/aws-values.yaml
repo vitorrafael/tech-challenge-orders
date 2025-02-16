@@ -2,12 +2,10 @@
 configMapData:
   API_PORT: "31200"
   PORT_SERVER: "8080"
-  MONOLITH_PORT: "8080"
-  MONOLITH_HOST: "lanchonete-service"
 
-  PRODUCTS_SERVICE_HOST: lanchonete-service
-  PRODUCTS_SERVICE_PORT: "8081"
-  CUSTOMERS_SERVICE_HOST: customer-api
+  PRODUCTS_SERVICE_HOST: products-service
+  PRODUCTS_SERVICE_PORT: "8080"
+  CUSTOMERS_SERVICE_HOST: customer-service
   CUSTOMERS_SERVICE_PORT: "8080"
 
   DATABASE_HOST: orders-db
@@ -24,7 +22,7 @@ configMapData:
 secret:
   enabled: true
   data:
-    DATABASE_PASSWORD: "TVRJek5EVTI="
+    DATABASE_PASSWORD: "MTIzNDU2"
 
 externalServices:
   - name: orders-db
